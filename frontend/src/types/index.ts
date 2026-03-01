@@ -37,10 +37,12 @@ export type GarbageCategory =
 
 /** Gemini 査定結果 */
 export interface AssessmentResult {
-  itemName: string
-  category: GarbageCategory
-  point: number
+  is_trash: boolean
+  type: string
+  material: string
+  points: number
   comment: string
+  is_suspicious?: boolean
 }
 
 /** ランキング（/rankings/{period}） */

@@ -41,21 +41,31 @@ export const assessGarbage = functions.https.onCall(
     const genAI = getGeminiClient()
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
-    const prompt = `
-あなたはゴミ拾いゲーム「GOMI-WARS」の査定AIです。
-送られてきた画像を見て、拾われたゴミを査定してください。
+    const systemPrompt = `あなたは「GOMI-WARS」の専属査定官です。送られた画像に写っているゴミを分析し、必ず以下のJSON形式でのみ回答してください。余計な文章や解説は一切含めないでください。
 
-以下のJSON形式のみで回答してください（他のテキストは不要）：
 {
-  "itemName": "ゴミの名前（例：ペットボトル、タバコの吸い殻）",
-  "category": "カテゴリ（plastic/cigarette/paper/can/glass/other のいずれか）",
-  "point": 10から100の間の整数（レア度・危険度・清掃の難易度で決定）,
-  "comment": "査定コメント（ユーモアを交えた30文字以内の日本語）"
+  "is_trash": true,
+  "type": "ゴミの種類（例：ペットボトル、空き缶、タバコの吸い殻）",
+  "material": "素材（例：プラスチック、アルミ、紙）",
+  "points": 1〜100の数値（分別の難しさと環境負荷で算出）,
+  "comment": "ユーザーへの一言（観測者らしい知的なコメント）",
+  "is_suspicious": false
 }
-`
+必ず { から始めて、 } で終わってください。JSON以外の文字は1文字も出力しないでください。
+液体の内容物が確認できるものや、明らかに生活必需品として機能しているものは is_trash: false と判定せよ。
+
+判定に迷った際は、その物体の「有用性（Utility）」を最優先に考慮せよ。
+【不正検知（is_suspicious）のルール】
+以下のいずれかに該当する場合、is_suspiciousを true にし、pointsを 0 とせよ。
+1. 画像が「画面の直撮り（PCやスマホのモニターを撮ったもの）」であると判断した場合。
+2. 画像が「印刷物（写真や雑誌）を再撮影したもの」であると判断した場合。
+3. 明らかに合成写真や、実世界の3次元的奥行きを欠く不自然な画像である場合。
+
+【メッセージの指針】
+is_suspiciousが true の場合、観測者として「欺瞞を見抜いた」という冷徹な、あるいは皮肉めいたコメントを出力せよ。`
 
     const result = await model.generateContent([
-      prompt,
+      systemPrompt,
       {
         inlineData: {
           data: imageBase64,
@@ -73,10 +83,17 @@ export const assessGarbage = functions.https.onCall(
     }
 
     const assessment = JSON.parse(jsonMatch[0]) as {
-      itemName: string
-      category: string
-      point: number
+      is_trash: boolean
+      type: string
+      material: string
+      points: number
       comment: string
+      is_suspicious?: boolean
+    }
+
+    // is_suspicious が true の場合はポイント0
+    if (assessment.is_suspicious) {
+      assessment.points = 0
     }
 
     return assessment
