@@ -10,5 +10,8 @@
     "deploy:hosting": "npm run build && firebase deploy --only hosting",
     "functions:build": "cd functions && npm run build",
     "functions:watch": "cd functions && npm run build:watch"
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0"
   }
 }
