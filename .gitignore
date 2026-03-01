@@ -1,0 +1,36 @@
+# 依存関係
+node_modules/
+frontend/node_modules/
+functions/node_modules/
+
+# ビルド成果物
+frontend/dist/
+functions/lib/
+
+# 環境変数（絶対にコミットしない）
+.env
+.env.local
+.env.*.local
+frontend/.env.local
+frontend/.env.*.local
+functions/.secret.local
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+
+# エディタ
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
