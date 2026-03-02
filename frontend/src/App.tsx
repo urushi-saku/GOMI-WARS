@@ -1,12 +1,13 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
 import Signup from "./page/Signup";
+import Home from "./page/Home";
 
 function App() {
   return (
     <>
-      <Link to="/signup">ユーザ登録</Link>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
     </>
