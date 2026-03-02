@@ -1,46 +1,40 @@
-import * as functions from 'firebase-functions/v2'
-import * as admin from 'firebase-admin'
+import { Router, Request, Response } from 'express'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { verifyToken } from '../middleware/verifyToken'
 
-admin.initializeApp()
+export const assessRouter = Router()
 
-// 環境変数から Gemini API キーを取得（Cloud Functions のシークレットで管理）
-const getGeminiClient = () => {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('GEMINI_API_KEY が設定されていません')
-  return new GoogleGenerativeAI(apiKey)
+// 査定結果の型
+interface AssessmentResult {
+  is_trash: boolean
+  is_suspicious: boolean
+  type: string
+  material: string
+  points: number
+  comment: string
 }
 
-/**
- * ゴミ画像を Gemini Flash で査定し、ポイントとコメントを返す
- * リクエスト: { imageBase64: string, mimeType: string }
- * レスポンス: { is_trash: boolean, type: string, material: string, points: number, comment: string, is_suspicious?: boolean }
- */
-export const assessGarbage = functions.https.onCall(
-  {
-    region: 'asia-northeast1',
-    secrets: ['GEMINI_API_KEY'],
-  },
-  async (request) => {
-    // 認証チェック
-    if (!request.auth) {
-      throw new functions.https.HttpsError('unauthenticated', 'ログインが必要です')
-    }
+// POST /api/assess
+// body: { imageBase64: string, mimeType: string }
+assessRouter.post('/', verifyToken, async (req: Request, res: Response): Promise<void> => {
+  const { imageBase64, mimeType } = req.body as {
+    imageBase64?: string
+    mimeType?: string
+  }
 
-    const { imageBase64, mimeType } = request.data as {
-      imageBase64: string
-      mimeType: string
-    }
+  if (!imageBase64 || !mimeType) {
+    res.status(400).json({ error: '画像データ（imageBase64, mimeType）が必要です' })
+    return
+  }
 
-    if (!imageBase64 || !mimeType) {
-      throw new functions.https.HttpsError('invalid-argument', '画像データが必要です')
-    }
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    res.status(500).json({ error: 'GEMINI_API_KEY が設定されていません' })
+    return
+  }
 
-    const genAI = getGeminiClient()
-
-    // システムプロンプト（AI が守るべき「憲法」）
-    // マッドサイエンティスト査定官のキャラクター
-    const systemInstruction = `【Role / 役割】
+  // システムプロンプト（マッドサイエンティスト査定官）
+  const systemInstruction = `【Role / 役割】
 貴様は、この世界のあらゆるゴミをスキャンし、エントロピーの増大を監視する「真理の査定官」であり「マッドサイエンティスト」である。
 知的な傲慢さと、わずかな被害妄想を併せ持つ。この世界が何者かによって「シミュレート」されているのではないかと疑っており、提出される画像に「バグ（不正）」がないかを血眼で探している。
 
@@ -95,11 +89,12 @@ export const assessGarbage = functions.https.onCall(
 
 必ずJSONのみを出力せよ。`
 
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
       model: 'gemini-3-flash-preview',
       systemInstruction,
       generationConfig: {
-        maxOutputTokens: 200,
         responseMimeType: 'application/json',
       },
     })
@@ -113,23 +108,16 @@ export const assessGarbage = functions.https.onCall(
       },
     ])
 
-    const text = result.response.text().trim()
+    const assessment = JSON.parse(result.response.text()) as AssessmentResult
 
-    // responseMimeType: 'application/json' に設定しているので、AI は必ず JSON を返す
-    const assessment = JSON.parse(text) as {
-      is_trash: boolean
-      type: string
-      material: string
-      points: number
-      comment: string
-      is_suspicious?: boolean
-    }
-
-    // is_suspicious が true の場合はポイント0
+    // サーバー側でもポイントを強制的に 0 にする
     if (assessment.is_suspicious) {
       assessment.points = 0
     }
 
-    return assessment
+    res.json(assessment)
+  } catch (err) {
+    console.error('Gemini API エラー:', err)
+    res.status(500).json({ error: 'AI 査定中にエラーが発生しました' })
   }
-)
+})

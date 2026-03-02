@@ -22,6 +22,12 @@ firebase-debug.*.log
 firestore-debug.log
 ui-debug.log
 
+# Backend
+backend/.env
+backend/.env.local
+backend/dist/
+backend/serviceAccountKey.json
+
 # エディタ
 .vscode/
 .idea/
