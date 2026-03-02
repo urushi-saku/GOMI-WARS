@@ -6,7 +6,7 @@
     "backend:dev": "cd backend && npm run dev",
     "backend:build": "cd backend && npm run build",
     "build": "cd frontend && npm run build",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting"
+    "deploy": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@google/genai": "^1.43.0"

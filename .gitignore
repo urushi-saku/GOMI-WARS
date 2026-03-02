@@ -1,11 +1,11 @@
 # 依存関係
 node_modules/
 frontend/node_modules/
-functions/node_modules/
+backend/node_modules/
 
 # ビルド成果物
 frontend/dist/
-functions/lib/
+backend/dist/
 
 # 環境変数（絶対にコミットしない）
 .env
@@ -13,7 +13,7 @@ functions/lib/
 .env.*.local
 frontend/.env.local
 frontend/.env.*.local
-functions/.secret.local
+backend/.env.local
 
 # Firebase
 .firebase/
@@ -23,9 +23,6 @@ firestore-debug.log
 ui-debug.log
 
 # Backend
-backend/.env
-backend/.env.local
-backend/dist/
 backend/serviceAccountKey.json
 
 # エディタ
