@@ -13,7 +13,7 @@ export async function verifyUser(idToken: string) {
     if (!userDoc.exists) {
       // 初回ログイン → 新規作成
       await db.collection("users").doc(decodedToken.uid).set({
-        uid:  decodedToken.user,
+        uid:  decodedToken.uid,
         email: decodedToken.email,
         createdAt: new Date(),
         role: "user"
