@@ -1,8 +1,25 @@
 import * as functions from 'firebase-functions/v2'
-import * as admin from 'firebase-admin'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { verifyUser } from "./controllers/authController"; 
 
-admin.initializeApp()
+//検証
+export const verifyUserFunction = functions.https.onRequest(
+  async (req, res) => {
+    const idToken = req.headers.authorization?.split("Bearer ")[1];
+
+    if (!idToken) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+
+    try {
+      const decodedToken = await verifyUser(idToken);
+      res.status(200).json(decodedToken);
+    } catch (error) {
+      res.status(401).send("Invalid token");
+    }
+  }
+);
 
 // 環境変数から Gemini API キーを取得（Cloud Functions のシークレットで管理）
 const getGeminiClient = () => {
