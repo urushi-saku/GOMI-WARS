@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../lib/firebase";
+import { googleLogin, loginWithEmail } from "../utils/authUtils";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,10 +8,7 @@ export default function Login() {
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault(); // ボタンが押されてもリロードしない
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      const user = result.user;
-      const idToken = user.getIdToken();
-      console.log(`User is ${user} | ID Token is ${idToken}`);
+      await loginWithEmail(email, password);
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -23,11 +19,7 @@ export default function Login() {
   const handleGoogleLogin = async () => {
     // APIキーが読み込めない。おそらく.envファイルがないから？
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-      console.log(`User is ${user.displayName} | ID Token is ${idToken}`);
-
+      await googleLogin();
       /* Firebase認証のためのコードをここに書く。BackendのAPIのエンドポイントが必要。また、一部のエラーはcatch文に入らないため、"!response.ok"からエラーを投げるように*/
     } catch (error) {
       if (error instanceof Error) {
@@ -51,6 +43,7 @@ export default function Login() {
         placeholder="パスワードを入力"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
       <button type="submit">ログイン</button>
       <button type="button" onClick={handleGoogleLogin}>
