@@ -1,15 +1,23 @@
 import { useState } from "react";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../lib/firebase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault(); // ボタンが押されてもリロードしない
-
-    // Firebaseでメールアドレス/パスワードの処理をここに書く
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      const idToken = user.getIdToken();
+      console.log(`User is ${user} | ID Token is ${idToken}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message);
+      }
+    }
   };
 
   const handleGoogleLogin = async () => {
