@@ -1,0 +1,22 @@
+# Render デプロイ設定
+# ドキュメント: https://render.com/docs/blueprint-spec
+
+services:
+  # APIサーバー（Express）
+  - type: web
+    name: gomi-wars-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false                  # Render ダッシュボードで手動設定
+      - key: FRONTEND_URL
+        sync: false                  # Render ダッシュボードで手動設定
+      # Firebase Admin SDK の認証情報（JSON を 1 行にした Base64 文字列で設定）
+      - key: GOOGLE_APPLICATION_CREDENTIALS_BASE64
+        sync: false                  # Render ダッシュボードで手動設定
+    healthCheckPath: /health        # Render がサーバーの起動確認に使う
