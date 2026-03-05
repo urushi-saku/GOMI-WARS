@@ -17,10 +17,10 @@ export default function Login() {
   };
 
   const handleGoogleLogin = async () => {
-    // APIキーが読み込めない。おそらく.envファイルがないから？
+    // TODO(#auth-google): Ensure Google login credentials are correctly configured via environment variables.
     try {
       await googleLogin();
-      /* Firebase認証のためのコードをここに書く。BackendのAPIのエンドポイントが必要。また、一部のエラーはcatch文に入らないため、"!response.ok"からエラーを投げるように*/
+      // TODO(#auth-google): Implement Firebase authentication and backend API integration, including explicit handling for non-OK responses.
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
