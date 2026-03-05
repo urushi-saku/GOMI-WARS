@@ -15,6 +15,8 @@ export async function loginWithEmail(email: string, password: string) {
 export async function signupWithEmail(email: string, password: string) {
   const result = await createUserWithEmailAndPassword(auth, email, password);
   return result.user;
+}
+
 // Googleでサインイン（Login/Signup共通で使える）
 export async function signInWithGoogle() {
   const result = await signInWithPopup(auth, googleProvider);
