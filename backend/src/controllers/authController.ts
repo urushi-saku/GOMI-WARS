@@ -21,6 +21,7 @@ export async function verifyUser(idToken: string) {
     return decodedToken // uidやemailが入っている。この人はだれかを特定。
   } catch (error) {
     console.error('Invalid or expired token', error)
-    throw new Error('Error creating user:')
+    //db.collection("users").add(user);でエラーが発生した場合の処理
+    throw new Error('Error creating user:') //エラー時のログ
   }
 }
