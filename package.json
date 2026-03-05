@@ -3,12 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "cd frontend && npm run dev",
+    "backend:dev": "cd backend && npm run dev",
+    "backend:build": "cd backend && npm run build",
     "build": "cd frontend && npm run build",
-    "emulators": "firebase emulators:start",
-    "deploy": "npm run build && firebase deploy",
-    "deploy:functions": "cd functions && npm run build && firebase deploy --only functions",
-    "deploy:hosting": "npm run build && firebase deploy --only hosting",
-    "functions:build": "cd functions && npm run build",
-    "functions:watch": "cd functions && npm run build:watch"
+    "deploy": "npm run build && firebase deploy --only hosting"
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0"
   }
 }

@@ -23,3 +23,6 @@ export const googleProvider = new GoogleAuthProvider();
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app, "asia-northeast1"); // 東京リージョン
+
+// API サーバー（Render にデプロイした Express）の URL
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
