@@ -18,10 +18,9 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = async () => {
-    // APIキーが読み込めない。おそらく.envファイルがないから？
     try {
       await googleLogin();
-      /* Firebase認証のためのコードをここに書く。BackendのAPIのエンドポイントが必要。また、一部のエラーはcatch文に入らないため、"!response.ok"からエラーを投げるように*/
+      // TODO: Add Firebase authentication handling once backend API endpoints are available.
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
