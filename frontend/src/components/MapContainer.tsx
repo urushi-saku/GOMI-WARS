@@ -1,4 +1,5 @@
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
+import HighlightMap from "./HighlightMap";
 
 export default function MapContainer() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -13,8 +14,8 @@ export default function MapContainer() {
           gestureHandling="greedy"
           disableDefaultUI
         ></Map>
+        <HighlightMap></HighlightMap>
       </APIProvider>
-      {/* ここにHighlightMap.tsxコンポーネントを書く */}
     </div>
   );
 }
