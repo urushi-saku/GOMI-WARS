@@ -3,6 +3,9 @@ import { APIProvider, Map } from "@vis.gl/react-google-maps";
 export default function MapContainer() {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+  if (!apiKey) {
+    throw new Error("VITE_GOOGLE_MAPS_API_KEY is not defined in the environment. Please set this variable to load Google Maps.");
+  }
   return (
     <APIProvider apiKey={apiKey}>
       {/* API ProviderでGoogle Map関連のコンポ―ネントを囲む */}
