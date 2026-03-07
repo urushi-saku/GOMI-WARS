@@ -5,12 +5,13 @@ export default function MapContainer() {
 
   return (
     <APIProvider apiKey={apiKey}>
+      {/* API ProviderでGoogle Map関連のコンポ―ネントを囲む */}
       <Map
         style={{ width: "100vw", height: "100vh" }}
         defaultCenter={{ lat: 35.6809591, lng: 139.7673068 }}
         defaultZoom={18}
-        gestureHandling={"greedy"}
-        disableDefaultUI
+        gestureHandling={"greedy"} // 1本指での地図の操作を可能に
+        disableDefaultUI // デフォルトのGoogle MapsのUIを削除
       ></Map>
     </APIProvider>
   );
