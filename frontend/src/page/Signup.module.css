@@ -10,7 +10,9 @@
   box-sizing: border-box;
   background: var(--cy-panel, rgba(0, 10, 20, 0.85));
   border: 1px solid var(--cy-cyan, #00f3ff);
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05);
+  box-shadow:
+    0 0 15px rgba(0, 243, 255, 0.15),
+    inset 0 0 20px rgba(0, 243, 255, 0.05);
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(8px);
@@ -18,7 +20,7 @@
 }
 
 .formContainer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -35,7 +37,10 @@
   font-weight: 700;
   color: #fff;
   text-transform: uppercase;
-  text-shadow: 0 0 5px #fff, 0 0 10px var(--cy-cyan, #00f3ff), 0 0 20px var(--cy-cyan, #00f3ff);
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px var(--cy-cyan, #00f3ff),
+    0 0 20px var(--cy-cyan, #00f3ff);
   letter-spacing: 2px;
   text-align: center;
 }
@@ -90,7 +95,7 @@
 }
 
 .submitButton::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -103,6 +108,8 @@
 .submitButton:hover,
 .submitButton:active {
   background: rgba(255, 0, 234, 0.15);
-  box-shadow: 0 0 20px rgba(255, 0, 234, 0.4), inset 0 0 10px rgba(255, 0, 234, 0.2);
+  box-shadow:
+    0 0 20px rgba(255, 0, 234, 0.4),
+    inset 0 0 10px rgba(255, 0, 234, 0.2);
   text-shadow: 0 0 8px var(--cy-magenta, #ff00ea);
 }
