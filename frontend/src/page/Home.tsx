@@ -1,6 +1,5 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
-import styles from "./Home.module.css";
 import { auth } from "../lib/firebase";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
@@ -13,13 +12,15 @@ export default function Home() {
       setUser(user);
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
   const handleSignOut = async () => {
     try {
       await signOut(auth);
     } catch (error) {
       console.error("Failed to sign out:", error);
-      window.alert("ログアウトに失敗しました。時間をおいて再度お試しください。");
+      window.alert(
+        "ログアウトに失敗しました。時間をおいて再度お試しください。",
+      );
     }
   };
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap");
 
 /* =========================================
    ベース設定（サイバースペース）
@@ -12,7 +12,7 @@ body {
   background-size: 20px 20px;
   background-attachment: fixed;
   color: #e0f8ff;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -54,7 +54,7 @@ body {
 /* =========================================
    コンテナ化 (サイバーパネル)
 ========================================= */
-#root>div,
+#root > div,
 form {
   display: flex;
   flex-direction: column;
@@ -65,7 +65,9 @@ form {
   padding: 2.5rem 1.5rem;
   background: rgba(0, 10, 20, 0.85);
   border: 1px solid var(--cy-cyan, #00f3ff);
-  box-shadow: 0 0 15px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05);
+  box-shadow:
+    0 0 15px rgba(0, 243, 255, 0.15),
+    inset 0 0 20px rgba(0, 243, 255, 0.05);
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -74,9 +76,9 @@ form {
 }
 
 /* コンテナ上部のアクセントライン */
-#root>div::before,
+#root > div::before,
 form::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -92,11 +94,14 @@ form::before {
 h2 {
   margin: 0;
   font-size: 1.8rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-weight: 700;
   color: #fff;
   text-transform: uppercase;
-  text-shadow: 0 0 5px #fff, 0 0 10px #00f3ff, 0 0 20px #00f3ff;
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px #00f3ff,
+    0 0 20px #00f3ff;
   letter-spacing: 2px;
   text-align: center;
 }
@@ -111,7 +116,7 @@ input {
   color: #00f3ff;
   padding: 14px 15px;
   font-size: 1rem;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: "Share Tech Mono", monospace;
   width: 100%;
   box-sizing: border-box;
   outline: none;
@@ -140,7 +145,7 @@ a {
   background: transparent;
   color: #00f3ff;
   font-size: 1.1rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-weight: 700;
   text-transform: uppercase;
   padding: 16px 20px;
@@ -163,7 +168,7 @@ a {
 /* ホバー/タップ時の背景エフェクト */
 button::before,
 a::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
