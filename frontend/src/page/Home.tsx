@@ -12,7 +12,7 @@ export default function Home() {
       setUser(user);
     });
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
   const handleSignOut = async () => {
     try {
       await signOut(auth);
