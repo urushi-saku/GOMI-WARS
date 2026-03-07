@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styles from "./Login.module.css";
 import { googleLogin, loginWithEmail } from "../utils/authUtils";
 
 export default function Login() {

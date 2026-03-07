@@ -1,5 +1,6 @@
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
+import styles from "./Home.module.css";
 import { auth } from "../lib/firebase";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
