@@ -29,7 +29,7 @@ function App() {
       }
     });
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, auth]);
 
   return (
     <>
