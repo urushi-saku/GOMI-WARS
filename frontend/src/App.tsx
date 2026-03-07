@@ -20,9 +20,10 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        if (locationRef.current.pathname === "/signup") {
+        const currentPath = locationRef.current.pathname;
+        if (currentPath === "/signup") {
           navigate("/welcome", { replace: true }); // 新規登録後の遷移先
-        } else {
+        } else if (currentPath !== "/welcome") {
           navigate("/", { replace: true }); // ログイン後の遷移先
         }
       }
