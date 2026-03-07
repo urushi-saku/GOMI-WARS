@@ -1,10 +1,34 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./lib/firebase";
 import "./App.css";
 import Signup from "./page/Signup";
 import Home from "./page/Home";
 import Login from "./page/Login";
 
 function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const locationRef = useRef(location);
+
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        if (locationRef.current.pathname === "/signup") {
+          navigate("/welcome", { replace: true }); // 新規登録後の遷移先
+        } else {
+          navigate("/", { replace: true }); // ログイン後の遷移先
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
   return (
     <>
       <Routes>
