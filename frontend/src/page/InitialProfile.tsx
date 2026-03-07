@@ -1,5 +1,5 @@
 export default function InitialProfile() {
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // データベースに入力内容を送信するコード
