@@ -6,6 +6,7 @@ import "./App.css";
 import Signup from "./page/Signup";
 import Home from "./page/Home";
 import Login from "./page/Login";
+import InitialProfile from "./page/InitialProfile";
 
 function App() {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/welcome" element={<InitialProfile />}></Route>
       </Routes>
     </>
   );
