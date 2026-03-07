@@ -1,18 +1,37 @@
 import { useState } from "react";
 import styles from "./Signup.module.css";
+import { googleLogin, signupWithEmail } from "../utils/authUtils";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSignup = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault(); // ボタンが押されてもリロードしない
 
-    // Firebaseの認証をここに書く
+    try {
+      await signupWithEmail(email, password);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Error: ${error.message}`);
+      }
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      await googleLogin();
+      // TODO: Add Firebase authentication handling once backend API endpoints are available.
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Error: ${error.message}`);
+      }
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSignup}>
+      <h2>新規登録</h2>
       <input
         type="email"
         placeholder="メールアドレスを入力"
@@ -25,8 +44,12 @@ export default function Signup() {
         placeholder="パスワードを入力"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
       <button type="submit">登録する</button>
+      <button type="button" onClick={handleGoogleSignup}>
+        Googleでログイン
+      </button>
     </form>
   );
 }
