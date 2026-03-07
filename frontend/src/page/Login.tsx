@@ -17,10 +17,8 @@ export default function Login() {
   };
 
   const handleGoogleLogin = async () => {
-    // TODO(#auth-google): Ensure Google login credentials are correctly configured via environment variables.
     try {
       await googleLogin();
-      // TODO(#auth-google): Implement Firebase authentication and backend API integration, including explicit handling for non-OK responses.
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
