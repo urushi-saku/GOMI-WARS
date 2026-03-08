@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import MapContainer from "../components/MapContainer";
 import GarbageButton from "../components/GarbageButton";
+import GarbageButtonAuth from "../components/GarbageButtonAuth";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,7 +34,7 @@ export default function Home() {
       <Link to="/login">ログイン画面へ</Link>
       <br />
       {user ? logoutButton : null}
-      <GarbageButton></GarbageButton>
+      {user ? <GarbageButtonAuth /> : <GarbageButton />}
       <MapContainer></MapContainer>
     </div>
   );
