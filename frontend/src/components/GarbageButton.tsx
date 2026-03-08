@@ -11,13 +11,13 @@ export default function GarbageButton() {
   const modal = (
     <div>
       <Link to="/login">ログインする</Link>
-      <button onClick={() => setIsClicked(false)}>X</button>
+      <button type="button" aria-label="モーダルを閉じる" onClick={() => setIsClicked(false)}>X</button>
     </div>
   );
   return (
     <>
       {isClicked ? modal : null}
-      <button onClick={() => setIsClicked(true)}>+</button>
+      <button type="button" aria-label="ゴミ投稿フォームを開く" onClick={() => setIsClicked(true)}>+</button>
     </>
   );
 }
