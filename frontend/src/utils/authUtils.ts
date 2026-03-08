@@ -5,7 +5,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, serverTimestamp, runTransaction } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, googleProvider, db, storage } from "../lib/firebase";
 
@@ -49,30 +49,65 @@ export async function signInWithGoogle() {
 export const googleLogin = signInWithGoogle;
 
 /**
+ * Firebase Auth のエラーコードをユーザー向けの日本語メッセージに変換する
+ * @param error - catch で受け取ったエラーオブジェクト
+ * @returns 表示用の日本語エラーメッセージ
+ */
+export function getAuthErrorMessage(error: unknown): string {
+  // Firebase Auth のエラーは code プロパティを持つ
+  const code = (error as { code?: string })?.code;
+  switch (code) {
+    case "auth/invalid-email":
+      return "メールアドレスの形式が正しくありません。";
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      // セキュリティのため、どちらのミスかは開示しない
+      return "メールアドレスまたはパスワードが間違っています。";
+    case "auth/email-already-in-use":
+      return "このメールアドレスはすでに登録されています。";
+    case "auth/weak-password":
+      return "パスワードは6文字以上で入力してください。";
+    case "auth/too-many-requests":
+      return "ログイン試行が多すぎます。しばらくしてから再試行してください。";
+    case "auth/network-request-failed":
+      return "ネットワークエラーが発生しました。接続を確認してください。";
+    case "auth/popup-closed-by-user":
+      return "Googleサインインがキャンセルされました。";
+    default:
+      return error instanceof Error ? error.message : "予期しないエラーが発生しました。";
+  }
+}
+
+/**
  * Firestoreにユーザードキュメントが存在しない場合のみ作成する
  * Google ログイン時に自動実行される
  * 既に登録済みのユーザーの場合は何も実行しない（べき等性を保証）
+ *
+ * runTransaction を使うことで「読み取り → 条件付き書き込み」をアトミックに実行し、
+ * 複数タブや同時ログインによる二重作成のレースコンディションを防ぐ
  * @param user - Firebase Auth のユーザーオブジェクト
  */
 export async function createUserDocIfNotExists(user: User) {
-  // Firebase の /users/{userId} ドキュメントへの参照を取得
   const userRef = doc(db, "users", user.uid);
-  
-  // 既にドキュメントが存在するか確認
-  const snap = await getDoc(userRef);
-  
-  // ドキュメントが存在しない場合のみ作成
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      displayName: user.displayName ?? "",
-      photoURL: user.photoURL ?? "",
-      totalPoints: 0,           // 初期ポイント
-      totalPickups: 0,          // ゴミ拾い回数の初期値
-      createdAt: serverTimestamp(),    // ドキュメント作成日時
-      updatedAt: serverTimestamp(),    // 最後更新日時
-    });
-  }
+
+  await runTransaction(db, async (transaction) => {
+    // トランザクション内で読み取り（他の書き込みと競合しないよう排他制御）
+    const snap = await transaction.get(userRef);
+
+    // ドキュメントが存在しない場合のみ作成
+    if (!snap.exists()) {
+      transaction.set(userRef, {
+        uid: user.uid,
+        displayName: user.displayName ?? "",
+        photoURL: user.photoURL ?? "",
+        totalPoints: 0,           // 初期ポイント
+        totalPickups: 0,          // ゴミ拾い回数の初期値
+        createdAt: serverTimestamp(),    // ドキュメント作成日時
+        updatedAt: serverTimestamp(),    // 最後更新日時
+      });
+    }
+  });
 }
 
 /**
@@ -104,15 +139,23 @@ export async function saveInitialProfile(
   // Firebase Auth のプロフィール（displayName と photoURL）を更新
   await updateProfile(user, { displayName, photoURL: photoURL || null });
 
-  // Firestore の /users/{uid} ドキュメントにユーザー情報を保存
   const userRef = doc(db, "users", user.uid);
-  await setDoc(userRef, {
-    uid: user.uid,
-    displayName,              // ユーザーが入力した名前
-    photoURL,                 // Storage から取得したアバター画像URL
-    totalPoints: 0,           // ポイント集計値の初期値
-    totalPickups: 0,          // ゴミ拾い履歴数の初期値
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+
+  // runTransaction で「読み取り → 書き込み」をアトミックに実行
+  // 既存ドキュメントを読んでから値を上書きすることで、
+  // totalPoints / totalPickups / createdAt などの既存値を確実に保持する
+  await runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(userRef);
+    const existing = snap.exists() ? snap.data() : null;
+
+    transaction.set(userRef, {
+      uid: user.uid,
+      displayName,                        // ユーザーが入力した名前
+      photoURL,                           // Storage から取得したアバター画像URL
+      totalPoints:  existing?.totalPoints  ?? 0,  // 既存ポイントを保持（初回は0）
+      totalPickups: existing?.totalPickups ?? 0,  // 既存回数を保持（初回は0）
+      createdAt: existing?.createdAt ?? serverTimestamp(), // 初回のみ設定
+      updatedAt: serverTimestamp(),
+    });
   });
 }

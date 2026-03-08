@@ -28,7 +28,26 @@ export default function InitialProfile() {
     
     // 現在ログイン中のユーザーを取得
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      // セッション切れや予期しない離脱時はログインページへ誘導
+      navigate("/login", {
+        replace: true,
+        state: { error: "セッションが切れました。再度ログインしてください。" },
+      });
+      return;
+    }
+
+    // trim後に空文字になる場合（スペースのみ入力）は登録不可
+    if (displayName.trim() === "") {
+      setError("ユーザー名を入力してください。");
+      return;
+    }
+
+    // 空白文字（スペース・全角スペース・タブ）が含まれている場合は登録不可
+    if (/[\s\u3000]/.test(displayName)) {
+      setError("ユーザー名にスペースは使用できません。");
+      return;
+    }
 
     // ローディング状態を有効化
     setLoading(true);

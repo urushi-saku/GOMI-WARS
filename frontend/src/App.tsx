@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./lib/firebase";
 import { createUserDocIfNotExists } from "./utils/authUtils";
 import "./App.css";
@@ -44,8 +44,18 @@ function App() {
           // ログインフロー: /login → Firestoreドキュメント確認 → /（ホーム画面へ）
           // Google ログインやメールログイン後、Firestoreに既にドキュメントがあるかチェック
           // なければ新規作成（既にあれば何もしない - べき等性を保証）
-          await createUserDocIfNotExists(user);
-          navigate("/", { replace: true });
+          try {
+            await createUserDocIfNotExists(user);
+            navigate("/", { replace: true });
+          } catch {
+            // Firestore への書き込みに失敗した場合は、
+            // 不整合状態を避けるためサインアウトしてログインページに戻す
+            await signOut(auth);
+            navigate("/login", {
+              replace: true,
+              state: { error: "アカウント情報の保存に失敗しました。再度ログインしてください。" },
+            });
+          }
         } else if (currentPath !== "/welcome") {
           // その他のページからのログイン時
           // /welcome ページ以外の場合はホーム画面へリダイレクト
