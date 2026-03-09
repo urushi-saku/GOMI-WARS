@@ -22,12 +22,11 @@ services:
     healthCheckPath: /health        # Render がサーバーの起動確認に使う
 
   # フロントエンド（React + Vite）
-  - type: web
+  - type: static
     name: gomi-wars-frontend
-    runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
-    startCommand: npx vite preview --host 0.0.0.0 --port $PORT
+    publishDir: dist
     envVars:
       - key: VITE_FIREBASE_API_KEY
         sync: false
