@@ -1,12 +1,17 @@
 import { db } from '../lib/firebase-admin'
-import { FieldValue } from 'firebase-admin/firestore'
+import { FieldValue,Transaction } from 'firebase-admin/firestore'
 
-export const addPointForUser = async (uid: string, point: number) => {
+export const addPointForUser = async (uid: string, point: number, transaction:Transaction)=> {
 　// Firestoreにユーザーの累積ポイント加算
   const userRef = db.collection('users').doc(uid)
+  const userDoc = await transaction.get(userRef)
 
-  await userRef.update({ totalPoint: FieldValue.increment(point) })
-
-  const updatedUserDoc = await userRef.get()
-  return updatedUserDoc.data()
+  const currentPoint = userDoc.data()?.totalPoint ?? 0
+  const newPoint = currentPoint + point
+  
+  transaction.set(userRef,
+  { totalPoint: FieldValue.increment(point) },
+  { merge: true }
+)
+  return { totalPoint: newPoint }
 }
