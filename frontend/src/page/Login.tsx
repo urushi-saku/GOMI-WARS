@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import styles from "./Login.module.css";
 import { googleLogin, loginWithEmail, getAuthErrorMessage } from "../utils/authUtils";
 
 export default function Login() {
