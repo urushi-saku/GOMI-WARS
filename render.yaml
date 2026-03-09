@@ -27,6 +27,10 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     publishDir: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_FIREBASE_API_KEY
         sync: false
@@ -43,4 +47,4 @@ services:
       - key: VITE_GOOGLE_MAPS_API_KEY
         sync: false
       - key: VITE_API_BASE_URL
-        value: https://gomi-wars.onrender.com
+        sync: false                  # Render ダッシュボードで手動設定 (例: https://gomi-wars.onrender.com)
