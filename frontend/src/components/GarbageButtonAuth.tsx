@@ -1,24 +1,43 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useDialogFocusTrap } from "../hooks/useDialogFocusTrap";
 
 export default function GarbageButtonAuth() {
   // 認証状態でのゴミ投稿ボタン
 
   // 投稿ボタンorモーダルの×ボタンがクリックされたかでトグル
-  const [isClicked, setIsClicked] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // ゴミ投稿用のモーダル
-  const modal = (
-    <div>
-      <h2>ゴミの画像を投稿</h2>
-      <label htmlFor="garbage-post">画像を添付</label>
-      <input type="file" id="garbage-post" />
-      <button onClick={() => setIsClicked(false)}>x</button>
-    </div>
-  );
+  // フォーカス管理: 初期フォーカス・Tabトラップ・Escapeで閉じる
+  useDialogFocusTrap(isOpen, dialogRef, triggerRef, () => setIsOpen(false));
+
   return (
     <>
-      {isClicked ? modal : null}
-      <button onClick={() => setIsClicked(true)}>+</button>
+      {isOpen && (
+        // ゴミ投稿用のモーダル
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="garbage-modal-title"
+        >
+          <h2 id="garbage-modal-title">ゴミの画像を投稿</h2>
+          <label htmlFor="garbage-post">画像を添付</label>
+          <input type="file" id="garbage-post" />
+          <button type="button" aria-label="モーダルを閉じる" onClick={() => setIsOpen(false)}>
+            x
+          </button>
+        </div>
+      )}
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label="ゴミ投稿フォームを開く"
+        onClick={() => setIsOpen(true)}
+      >
+        +
+      </button>
     </>
   );
 }
