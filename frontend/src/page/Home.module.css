@@ -1,3 +1,149 @@
+/* Home.module.css */
+
+.homeContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1400px;
+  min-height: 100vh;
+  padding: 1rem;
+  margin: 0 auto;
+  gap: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* --- TITLE HEADER --- */
+.header {
+  text-align: center;
+  padding: 2rem 0 1rem;
+  border-bottom: 2px solid var(--cy-cyan, #00f3ff);
+  box-shadow: 0 10px 15px -10px rgba(0, 243, 255, 0.5);
+  margin-bottom: 1rem;
+  background: linear-gradient(to bottom, transparent, rgba(0, 243, 255, 0.05));
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 5px;
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px #fff,
+    0 0 20px var(--cy-magenta, #ff00ea),
+    0 0 40px var(--cy-magenta, #ff00ea),
+    0 0 80px var(--cy-magenta, #ff00ea);
+}
+
+.subtitle {
+  color: var(--cy-cyan, #00f3ff);
+  font-size: 0.9rem;
+  letter-spacing: 3px;
+  margin-top: 5px;
+  text-shadow: 0 0 5px rgba(0, 243, 255, 0.5);
+}
+
+/* --- MAIN DASHBOARD LAYOUT --- */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  flex: 1;
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .dashboard {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 600px;
+  }
+}
+
+/* --- CONTROL PANEL (LEFT) --- */
+.controlPanel {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--cy-panel, rgba(0, 10, 20, 0.85));
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  box-shadow:
+    0 0 20px rgba(0, 243, 255, 0.2),
+    inset 0 0 20px rgba(0, 243, 255, 0.05);
+  border-radius: 4px;
+  position: relative;
+}
+
+@media (min-width: 900px) {
+  .controlPanel {
+    width: 350px;
+    height: 100%;
+  }
+}
+
+.panelHeader,
+.panelFooter {
+  background: rgba(0, 243, 255, 0.1);
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+  font-size: 0.8rem;
+  color: var(--cy-cyan, #00f3ff);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 2px;
+}
+
+.panelFooter {
+  border-bottom: none;
+  border-top: 1px solid rgba(0, 243, 255, 0.3);
+  margin-top: auto;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.statusIndicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--cy-magenta, #ff00ea);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--cy-magenta, #ff00ea);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--cy-magenta, #ff00ea);
+  }
+
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 2px var(--cy-magenta, #ff00ea);
+  }
+
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--cy-magenta, #ff00ea);
+  }
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+}
+
+/* --- BUTTONS --- */
+.actionButton {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
 .container {
   display: flex;
   flex-direction: column;
@@ -54,6 +200,95 @@
   font-size: 1.1rem;
   font-family: var(--font-display);
   font-weight: 700;
+  padding: 16px 20px;
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 rgba(0, 243, 255, 0);
+  transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
+  position: relative;
+  letter-spacing: 2px;
+  overflow: hidden;
+}
+
+.actionButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.actionButton:hover,
+.actionButton:active {
+  background: rgba(0, 243, 255, 0.15);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.3);
+  text-shadow: 0 0 5px var(--cy-cyan, #00f3ff);
+  color: #fff;
+}
+
+.actionButton:hover::before {
+  left: 100%;
+}
+
+/* --- MAP SECTION (RIGHT) --- */
+.mapSection {
+  width: 100%;
+  height: 50vh;
+  min-height: 350px;
+  border: 2px solid var(--cy-magenta, #ff00ea);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 0, 234, 0.2);
+  background: var(--cy-panel, rgba(0, 10, 20, 0.9));
+  flex: none;
+  /* スマホでは潰れないように固定確保 */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .mapSection {
+    flex: 1;
+    /* PCでは残りの幅を全て使う */
+    height: auto;
+    align-self: stretch;
+  }
+}
+
+/* --- MAP HUD OVERLAY --- */
+.mapOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  /* マップのクリックの邪魔をしない */
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+  color: var(--cy-magenta, #ff00ea);
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  box-sizing: border-box;
+}
+
+.mapLabel {
+  letter-spacing: 2px;
+  text-shadow: 0 0 5px var(--cy-magenta, #ff00ea);
+}
+
+.mapCoords {
+  color: var(--cy-cyan, #00f3ff);
+  text-shadow: 0 0 5px var(--cy-cyan, #00f3ff);
+}
   text-transform: uppercase;
   padding: 16px 20px;
   border: 1px solid var(--cy-cyan, #00f3ff);
