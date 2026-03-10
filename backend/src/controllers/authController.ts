@@ -1,5 +1,7 @@
 import { auth, db } from '../lib/firebase-admin'
 import { User } from '../types'
+import { Timestamp } from 'firebase-admin/firestore'
+
 
 export async function verifyUser(idToken: string) {
   try {
@@ -14,7 +16,7 @@ export async function verifyUser(idToken: string) {
       const newUser: User = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      createdAt: new Date(),
+      createdAt: Timestamp.now(), 
       role: 'user',
       totalPoint: 0
       }

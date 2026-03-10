@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase-admin/firestore'
+
 export interface AssessmentResult {
   is_trash: boolean
   is_suspicious: boolean
@@ -11,7 +13,7 @@ export interface AssessmentResult {
 export interface User {
   uid: string
   email?: string
-  createdAt: Date
+  createdAt: Timestamp 
   role: 'user' | 'admin'
   totalPoint: number
 }
