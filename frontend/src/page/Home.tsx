@@ -70,7 +70,6 @@ export default function Home() {
           <MapContainer />
         </div>
       </div>
->>>>>>> origin/feature/map_design
     </div>
   );
 }
