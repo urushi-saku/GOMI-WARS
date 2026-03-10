@@ -2,29 +2,34 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { googleLogin, loginWithEmail } from "../utils/authUtils";
 import styles from "./Login.module.css";
+import { useLocation } from "react-router-dom";
+import styles from "./Login.module.css";
+import { googleLogin, loginWithEmail, getAuthErrorMessage } from "../utils/authUtils";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(
+    // App.tsx から navigate で渡されたエラーメッセージがあれば初期値にセット
+    (useLocation().state as { error?: string } | null)?.error ?? null
+  );
 
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ボタンが押されてもリロードしない
+    e.preventDefault();
+    setError(null);
     try {
       await loginWithEmail(email, password);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 
   const handleGoogleLogin = async () => {
+    setError(null);
     try {
       await googleLogin();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(`Error: ${error.message}`);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 

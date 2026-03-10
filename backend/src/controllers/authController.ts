@@ -1,4 +1,7 @@
 import { auth, db } from '../lib/firebase-admin'
+import { User } from '../types'
+import { Timestamp } from 'firebase-admin/firestore'
+
 
 export async function verifyUser(idToken: string) {
   try {
@@ -9,12 +12,15 @@ export async function verifyUser(idToken: string) {
 
     if (!userDoc.exists) {
       // 初回ログイン → 新規作成
-      await db.collection('users').doc(decodedToken.uid).set({
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-        createdAt: new Date(),
-        role: 'user',
-      })
+      
+      const newUser: User = {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      createdAt: Timestamp.now(), 
+      role: 'user',
+      totalPoint: 0
+      }
+      await db.collection('users').doc(decodedToken.uid).set(newUser)
       console.info(`${decodedToken.uid} さんのデータを追加しました`)
     }
 

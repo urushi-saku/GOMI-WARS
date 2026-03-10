@@ -1,10 +1,12 @@
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { Link } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import HamburgerIcon from "../components/HamburgerIcon";
 import { auth } from "../lib/firebase";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import MapContainer from "../components/MapContainer";
 import styles from "./Home.module.css";
+import GarbageButton from "../components/GarbageButton";
+import GarbageButtonAuth from "../components/GarbageButtonAuth";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
