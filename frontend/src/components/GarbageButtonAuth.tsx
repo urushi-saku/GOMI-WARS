@@ -14,11 +14,12 @@ export default function GarbageButtonAuth() {
 
   const handlePostClick = () => {
     navigator.geolocation.getCurrentPosition(
-      (posititon) => {
-        const lat = posititon.coords.latitude;
-        const lng = posititon.coords.longitude;
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
         console.log(`Latitude: ${lat} | Longitude: ${lng}`);
+        setIsOpen(false);
       },
       (error) => {
         console.error(error.message);
