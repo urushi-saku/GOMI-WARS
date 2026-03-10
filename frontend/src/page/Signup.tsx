@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styles from "./Signup.module.css";
 import { googleLogin, signupWithEmail, getAuthErrorMessage } from "../utils/authUtils";
 
 export default function Signup() {

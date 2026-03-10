@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "./lib/firebase";
+import { auth, API_BASE_URL } from "./lib/firebase";
 import { createUserDocIfNotExists } from "./utils/authUtils";
 import "./App.css";
 import Signup from "./page/Signup";
@@ -16,7 +16,14 @@ import InitialProfile from "./page/InitialProfile";
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
+  // アプリ起動時に Render サーバーをウォームアップ（スリープ解除）
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/health`).catch(() => {
+      // サーバーがまだ起動中の場合などは無視してよい
+    });
+  }, []);
+
   // useLocation は再レンダリングのたびに新しいオブジェクトが作成されるため
   // useRef で保持して onAuthStateChanged 内で最新の pathname を参照できるようにする
   const locationRef = useRef(location);
