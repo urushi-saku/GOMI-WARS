@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { googleLogin, loginWithEmail } from "../utils/authUtils";
+import styles from "./Login.module.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,26 +29,43 @@ export default function Login() {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <h2>ログイン</h2>
-      <input
-        type="email"
-        placeholder="メールアドレスを入力"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="パスワードを入力"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">ログイン</button>
-      <button type="button" onClick={handleGoogleLogin}>
-        Googleでログイン
-      </button>
-    </form>
+    <div className={styles.pageContainer}>
+      <header className={styles.header}>
+        <h1 className={styles.title} data-text="LOGIN">LOGIN</h1>
+        <p className={styles.subtitle}>// AUTHENTICATION REQUIRED //</p>
+      </header>
+
+      <form className={styles.formPanel} onSubmit={handleLogin}>
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>EMAIL_ADDRESS</label>
+          <input
+            className={styles.inputField}
+            type="email"
+            placeholder="メールアドレスを入力"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>PASSWORD_KEY</label>
+          <input
+            className={styles.inputField}
+            type="password"
+            placeholder="パスワードを入力"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <button type="submit" className={styles.actionButton}>[ ログイン実行 ]</button>
+        <button type="button" onClick={handleGoogleLogin} className={styles.googleButton}>
+          [ Googleでログイン ]
+        </button>
+      </form>
+
+      <Link to="/" className={styles.backLink}>&lt; トップシステムへ戻る</Link>
+    </div>
   );
 }

@@ -4,15 +4,18 @@ import { auth } from "../lib/firebase";
 import { useEffect, useState } from "react";
 import type { User } from "firebase/auth";
 import MapContainer from "../components/MapContainer";
+import styles from "./Home.module.css";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -22,15 +25,46 @@ export default function Home() {
     }
   };
 
-  const logoutButton = <button onClick={handleSignOut}>ログアウト</button>;
   return (
-    <div>
-      <Link to="/signup">ユーザ登録画面へ</Link>
-      <br />
-      <Link to="/login">ログイン画面へ</Link>
-      <br />
-      {user ? logoutButton : null}
-      <MapContainer></MapContainer>
+    <div className={styles.homeContainer}>
+      {/* ネオン風のタイトルヘッダー */}
+      <header className={styles.header}>
+        <h1 className={styles.title} data-text="GOMI WARS">GOMI WARS</h1>
+      </header>
+
+      <div className={styles.dashboard}>
+        {/* 左側（スマホでは上）：操作パネル */}
+        <div className={styles.controlPanel}>
+          <div className={styles.panelHeader}>
+            <span>SYS_CTRL</span>
+            <div className={styles.statusIndicator}></div>
+          </div>
+
+          <div className={styles.buttonContainer}>
+            {!user ? (
+              <>
+                <Link to="/signup" className={styles.actionButton}>[ ユーザ登録 ]</Link>
+                <Link to="/login" className={styles.actionButton}>[ ログイン ]</Link>
+              </>
+            ) : (
+              <button onClick={handleSignOut} className={styles.actionButton}>[ ログアウト ]</button>
+            )}
+          </div>
+
+          <div className={styles.panelFooter}>
+            CONNECTION: SECURE
+          </div>
+        </div>
+
+        {/* 右側（スマホでは下）：マップエリア */}
+        <div className={styles.mapSection}>
+          <div className={styles.mapOverlay}>
+            <span className={styles.mapLabel}>TERRITORY SCANNER</span>
+            <span className={styles.mapCoords}>LAT:35.68 LNG:139.76</span>
+          </div>
+          <MapContainer />
+        </div>
+      </div>
     </div>
   );
 }
