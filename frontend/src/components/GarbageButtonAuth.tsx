@@ -12,6 +12,20 @@ export default function GarbageButtonAuth() {
   // フォーカス管理: 初期フォーカス・Tabトラップ・Escapeで閉じる
   useDialogFocusTrap(isOpen, dialogRef, triggerRef, () => setIsOpen(false));
 
+  const handlePostClick = () => {
+    navigator.geolocation.getCurrentPosition(
+      (posititon) => {
+        const lat = posititon.coords.latitude;
+        const lng = posititon.coords.longitude;
+
+        console.log(`Latitude: ${lat} | Longitude: ${lng}`);
+      },
+      (error) => {
+        console.error(error.message);
+      },
+    );
+  };
+
   return (
     <>
       {isOpen && (
@@ -25,7 +39,12 @@ export default function GarbageButtonAuth() {
           <h2 id="garbage-modal-title">ゴミの画像を投稿</h2>
           <label htmlFor="garbage-post">画像を添付</label>
           <input type="file" id="garbage-post" />
-          <button type="button" aria-label="モーダルを閉じる" onClick={() => setIsOpen(false)}>
+          <button onClick={handlePostClick}>投稿</button>
+          <button
+            type="button"
+            aria-label="モーダルを閉じる"
+            onClick={() => setIsOpen(false)}
+          >
             x
           </button>
         </div>
