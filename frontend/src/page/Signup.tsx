@@ -1,59 +1,72 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { googleLogin, signupWithEmail } from "../utils/authUtils";
 import styles from "./Signup.module.css";
-import { googleLogin, signupWithEmail, getAuthErrorMessage } from "../utils/authUtils";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const handleSignup = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault(); // ボタンが押されてもリロードしない
+
     try {
       await signupWithEmail(email, password);
-    } catch (err) {
-      setError(getAuthErrorMessage(err));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Error: ${error.message}`);
+      }
     }
   };
 
   const handleGoogleSignup = async () => {
-    setError(null);
     try {
       await googleLogin();
-    } catch (err) {
-      setError(getAuthErrorMessage(err));
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Error: ${error.message}`);
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSignup}>
-      <h2>新規登録</h2>
-      {/* エラーメッセージと「やり直し」の案内 */}
-      {error && (
-        <div role="alert">
-          <p>{error}</p>
-          <p>内容を確認して再度お試しください。</p>
+    <div className={styles.pageContainer}>
+      <header className={styles.header}>
+        <h1 className={styles.title} data-text="REGISTER">REGISTER</h1>
+        <p className={styles.subtitle}>// NEW AGENT INITIALIZATION //</p>
+      </header>
+
+      <form className={styles.formPanel} onSubmit={handleSignup}>
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>EMAIL_ADDRESS</label>
+          <input
+            className={styles.inputField}
+            type="email"
+            placeholder="メールアドレスを入力"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-      )}
-      <input
-        type="email"
-        placeholder="メールアドレスを入力"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="パスワードを入力"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">登録する</button>
-      <button type="button" onClick={handleGoogleSignup}>
-        Googleでログイン
-      </button>
-    </form>
+        <div className={styles.inputGroup}>
+          <label className={styles.inputLabel}>PASSWORD_KEY</label>
+          <input
+            className={styles.inputField}
+            type="password"
+            placeholder="パスワードを入力"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <button type="submit" className={styles.actionButton}>[ 登録する ]</button>
+        <button type="button" onClick={handleGoogleSignup} className={styles.googleButton}>
+          [ Googleで登録 ]
+        </button>
+      </form>
+
+      <Link to="/" className={styles.backLink}>&lt; トップシステムへ戻る</Link>
+    </div>
   );
 }
