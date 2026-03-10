@@ -2,6 +2,9 @@ import { Request, Response } from 'express'
 import { FieldValue, GeoPoint } from 'firebase-admin/firestore'
 import { assessImage } from '../services/geminiService'
 import { db } from '../lib/firebase-admin'
+import { addPointForUser } from '../services/pointService'
+import { updateGrid } from '../services/gridService'
+import crypto from 'crypto'
 
 export const assess = async (req: Request, res: Response): Promise<void> => {
   const { imageBase64, mimeType, location } = req.body as {
@@ -16,27 +19,64 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
+    //画像hash生成
+    const imageHash = crypto.createHash('sha256').update(imageBase64).digest('hex')
+
+
+    //AI評価
     const assessment = await assessImage(imageBase64, mimeType)
+    const result = await db.runTransaction(async (transaction) => {
 
-    // is_trash: true かつ is_suspicious: false のときだけ Firestore に保存
-    if (assessment.is_trash && !assessment.is_suspicious) {
-      const pickupData: Record<string, unknown> = {
-        userId: req.uid,
-        points: assessment.points,
-        comment: assessment.comment,
-        createdAt: FieldValue.serverTimestamp(),
+      const pickupRef = db.collection('pickups').doc(imageHash)
+
+      // 重複チェック（完全防止）
+      const existing = await transaction.get(pickupRef)
+
+      if (existing.exists) {
+        throw new Error('同じ画像は投稿できません')
+      }
+      // is_trash: true かつ is_suspicious: false のときだけ Firestore に保存
+      //AI評価結果の履歴をユーザーごとに保存
+      if (assessment.is_trash && !assessment.is_suspicious) {
+        const pickupData: Record<string, unknown> = {
+          userId: req.uid,
+          points: assessment.points,
+          comment: assessment.comment,
+          imageHash:imageHash,
+          createdAt: FieldValue.serverTimestamp(),
+        }
+
+        if (location?.lat !== undefined && location?.lng !== undefined) {
+          pickupData.location = new GeoPoint(location.lat, location.lng)
+        }
+        transaction.set(pickupRef, pickupData)
       }
 
+      //Firestore にユーザーの累積ポイント加算
+      const updatedUser = await addPointForUser(req.uid!, assessment.points,transaction)
+
+      // グリッド更新。位置ごとのポイント集計とランキングを管理
+      let gridUpdate = null
       if (location?.lat !== undefined && location?.lng !== undefined) {
-        pickupData.location = new GeoPoint(location.lat, location.lng)
+        gridUpdate = await updateGrid(location.lat, location.lng, req.uid!, assessment.points,transaction)
       }
 
-      await db.collection('pickups').add(pickupData)
-    }
+      return{
+        totalPoint: updatedUser?.totalPoint,
+        grid: gridUpdate
+      }
+    })
 
-    res.json(assessment)
-  } catch (err) {
-    console.error('Gemini API エラー:', err)
-    res.status(500).json({ error: 'AI 査定中にエラーが発生しました' })
+    //レスポンス返却
+    res.status(200).json({
+      message: 'ゴミ査定＋ポイント加算完了',
+      aiResult: assessment,
+      totalPoint: result.totalPoint,
+      grid: result.grid,
+    })
+
+  } catch (err:any) {
+    console.error('assessController error:', err)
+    res.status(500).json({ error: err.message || '処理中にエラーが発生しました'})
   }
 }
