@@ -13,6 +13,7 @@ export interface AssessmentResult {
 export interface User {
   uid: string
   email?: string
+  displayName:string
   createdAt: Timestamp 
   role: 'user' | 'admin'
   totalPoint: number

@@ -10,12 +10,15 @@ export async function verifyUser(idToken: string) {
     // Firestoreからユーザーを取得
     const userDoc = await db.collection('users').doc(decodedToken.uid).get()
 
+
+    
     if (!userDoc.exists) {
       // 初回ログイン → 新規作成
       
       const newUser: User = {
       uid: decodedToken.uid,
       email: decodedToken.email,
+      displayName: "",
       createdAt: Timestamp.now(), 
       role: 'user',
       totalPoint: 0
