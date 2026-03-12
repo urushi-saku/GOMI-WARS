@@ -135,7 +135,7 @@ export default function Profile() {
       <section className={styles.statusSection}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>TOTAL POINTS</span>
-          <span className={styles.statValue}>{profile.totalPoints}</span>
+          <span className={styles.statValue}>{profile.totalPoint}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>PICKUPS</span>

@@ -5,7 +5,7 @@ export interface UserProfile {
   uid: string;
   displayName: string;
   photoURL?: string;
-  totalPoints: number;
+  totalPoint: number;   // Firestore 実フィールド名（バックエンドが increment）
   totalPickups: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -57,6 +57,6 @@ export interface RankingEntry {
   userId: string;
   displayName: string;
   photoURL?: string;
-  totalPoints: number;
+  totalPoint: number;   // Firestore 実フィールド名（バックエンドが increment）
   totalPickups: number;
 }
