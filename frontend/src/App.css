@@ -10,10 +10,37 @@
   position: relative;
   z-index: 1;
   /* 手前に表示 */
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+=========
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap");
 
 /* =========================================
    ベース設定（サイバースペース）
+========================================= */
 body {
   margin: 0;
   background-color: #00040a;
@@ -64,6 +91,7 @@ body {
 
 /* =========================================
    コンテナ化 (サイバーパネル)
+========================================= */
 #root > div,
 form {
   display: flex;
@@ -100,6 +128,7 @@ form::before {
 
 /* =========================================
    見出し (h2)
+========================================= */
 h2 {
   margin: 0;
   font-size: 1.8rem;
@@ -136,24 +165,9 @@ input {
   appearance: none;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
 input::placeholder {
   color: rgba(0, 243, 255, 0.4);
+>>>>>>>>> Temporary merge branch 2
 }
 
 input:focus {
@@ -164,6 +178,7 @@ input:focus {
 
 /* =========================================
    ボタンとリンク (button, a)
+========================================= */
 button,
 a {
   background: transparent;
@@ -189,6 +204,11 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+<<<<<<<<< Temporary merge branch 1
+.read-the-docs {
+  color: #888;
+}
+=========
 /* ホバー/タップ時の背景エフェクト */
 button::before,
 a::before {
@@ -224,11 +244,9 @@ a:active {
   box-shadow: 0 0 25px rgba(0, 243, 255, 0.8) inset;
 }
 
-.read-the-docs {
-  color: #888;
-}
 /* =========================================
    微調整
+========================================= */
 br {
   display: none;
 }

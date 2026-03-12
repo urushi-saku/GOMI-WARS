@@ -1,8 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { auth, db, storage } from "../lib/firebase";
-import type { GarbageCategory } from "../types";
 import { useDialogFocusTrap } from "../hooks/useDialogFocusTrap";
 import { assessGarbage, fileToBase64 } from "../utils/assessApi";
 import type { AssessmentResult } from "../types";
