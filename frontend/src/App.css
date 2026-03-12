@@ -35,7 +35,7 @@
   to {
     transform: rotate(360deg);
   }
-=========
+}
 @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap");
 
 /* =========================================
@@ -167,7 +167,6 @@ input {
 
 input::placeholder {
   color: rgba(0, 243, 255, 0.4);
->>>>>>>>> Temporary merge branch 2
 }
 
 input:focus {
@@ -204,11 +203,9 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
-<<<<<<<<< Temporary merge branch 1
 .read-the-docs {
   color: #888;
 }
-=========
 /* ホバー/タップ時の背景エフェクト */
 button::before,
 a::before {
