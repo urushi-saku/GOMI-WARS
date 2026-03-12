@@ -8,7 +8,7 @@ const PORT = process.env.PORT ?? 3001
 
 // CORS: フロントエンドのオリジンのみ許可
 const allowedOrigins = [
-  'http://localhost:5173',            // Vite 開発サーバー
+  /^http:\/\/localhost(:\d+)?$/,      // 開発環境: localhost の全ポートを許可
   process.env.FRONTEND_URL ?? '',     // 本番フロントエンド URL
 ]
 
@@ -16,7 +16,9 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Origin なし（curl など）または許可リストにあれば OK
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.some((o) =>
+        typeof o === 'string' ? o === origin : o.test(origin)
+      )) {
         callback(null, true)
       } else {
         callback(new Error(`CORS: ${origin} は許可されていません`))
