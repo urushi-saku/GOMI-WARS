@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -25,55 +25,59 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
+  // 複数回発火する onAuthStateChanged 内でデータ取得を1度だけに制御するフラグ
+  const hasFetched = useRef(false);
 
-  // ログアウト検知のみ担当（データ取得とは分離）
+  // onAuthStateChanged でログアウト検知 + 初回のみデータ取得
+  // auth.currentUser を直接参照せず onAuthStateChanged を待つことで、
+  // Firebase Auth 初期化前の race condition を防ぐ
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
         navigate("/login", { replace: true });
+        return;
       }
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
-  // 初回マウント時に1回だけデータ取得
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
+      // トークンリフレッシュ時の再取得を防ぐ（初回のみ）
+      if (hasFetched.current) return;
+      hasFetched.current = true;
 
-    const fetchData = async () => {
-      try {
-        // Firestore からプロフィールを取得
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) {
+      const fetchData = async () => {
+        try {
+          // Firestore からプロフィールを取得
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (!snap.exists()) {
+            // Firestore ドキュメントが存在しない（異常系）
+            setFetchError(true);
+            return;
+          }
           const data = snap.data() as UserProfile;
           setProfile(data);
           setEditName(data.displayName);
-        } else {
-          // Firestore ドキュメントが存在しない（異常系）
+
+          // ゴミ拾い履歴を取得（新しい順、最大50件）
+          const q = query(
+            collection(db, "pickups"),
+            where("userId", "==", user.uid),
+            orderBy("createdAt", "desc"),
+            limit(50)
+          );
+          const pickupSnap = await getDocs(q);
+          setPickups(
+            pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+          );
+        } catch {
           setFetchError(true);
+        } finally {
+          setLoading(false);
         }
+      };
 
-        // ゴミ拾い履歴を取得（新しい順、最大50件）
-        const q = query(
-          collection(db, "pickups"),
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc"),
-          limit(50)
-        );
-        const pickupSnap = await getDocs(q);
-        setPickups(
-          pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-        );
-      } catch {
-        setFetchError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
+      fetchData();
+    });
 
-    fetchData();
-  }, []);
+    return () => unsubscribe();
+  }, [navigate]);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
