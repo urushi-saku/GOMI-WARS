@@ -3,12 +3,14 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, API_BASE_URL } from "./lib/firebase";
 import { createUserDocIfNotExists } from "./utils/authUtils";
+import { useAuth } from "./contexts/AuthContext";
 import "./App.css";
 import Signup from "./page/Signup";
 import Home from "./page/Home";
 import Login from "./page/Login";
 import InitialProfile from "./page/InitialProfile";
 import Profile from "./page/Profile";
+import PrivateRoute from "./components/PrivateRoute";
 
 /**
  * App メインコンポーネント
@@ -17,6 +19,7 @@ import Profile from "./page/Profile";
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { authLoading } = useAuth();
 
   // アプリ起動時に Render サーバーをウォームアップ（スリープ解除）
   useEffect(() => {
@@ -64,11 +67,8 @@ function App() {
               state: { error: "アカウント情報の保存に失敗しました。再度ログインしてください。" },
             });
           }
-        } else if (!(["/welcome", "/profile"] as string[]).includes(currentPath)) {
-          // 認証済みユーザーが使う保護ページ以外（例：未知のページに直接アクセス）はホームへ
-          // /welcome と /profile はログイン済みユーザーが正常に滞在するページなのでリダイレクト対象外
-          navigate("/", { replace: true });
         }
+        // /welcome と /profile は PrivateRoute が管理するため、ここでの追加制御は不要
       }
     });
     
@@ -76,15 +76,38 @@ function App() {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Firebase Auth の初期化完了まで全画面ローディングを表示し、UIのチラつき（フラッシュ）を防ぐ
+  // TODO: CSS担当者 → 以下のインラインスタイルをグローバルCSSクラスに移行してください
+  if (authLoading) {
+    return (
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        color: "var(--cy-cyan, #00f3ff)",
+        fontFamily: "var(--font-display)",
+        fontSize: "1.1rem",
+        letterSpacing: "4px",
+        background: "var(--cy-bg, #000a14)",
+      }}>
+        同期中...
+      </div>
+    );
+  }
+
   return (
     <>
       {/* ルーティング定義 */}
       <Routes>
-        <Route path="/" element={<Home />} />                        {/* ホーム画面 */}
-        <Route path="/signup" element={<Signup />} />              {/* 新規登録画面 */}
-        <Route path="/login" element={<Login />} />                {/* ログイン画面 */}
-        <Route path="/welcome" element={<InitialProfile />} />     {/* プロフィール初期設定画面 */}
-        <Route path="/profile" element={<Profile />} />             {/* プロフィール画面 */}
+        {/* パブリックルート（認証不要） */}
+        <Route path="/" element={<Home />} />                   {/* ホーム画面 */}
+        <Route path="/signup" element={<Signup />} />          {/* 新規登録画面 */}
+        <Route path="/login" element={<Login />} />            {/* ログイン画面 */}
+
+        {/* プライベートルート（未ログインは /login へリダイレクト） */}
+        <Route path="/welcome" element={<PrivateRoute><InitialProfile /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
       </Routes>
     </>
   );

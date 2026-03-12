@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -25,59 +24,45 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
-  // 複数回発火する onAuthStateChanged 内でデータ取得を1度だけに制御するフラグ
-  const hasFetched = useRef(false);
 
-  // onAuthStateChanged でログアウト検知 + 初回のみデータ取得
-  // auth.currentUser を直接参照せず onAuthStateChanged を待つことで、
-  // Firebase Auth 初期化前の race condition を防ぐ
+  // PrivateRoute が「ログイン済み」を保証した上でこのコンポーネントが描画されるため、
+  // auth.currentUser は必ず non-null。onAuthStateChanged を待つ必要はない。
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        navigate("/login", { replace: true });
-        return;
-      }
+    const user = auth.currentUser;
+    if (!user) return; // PrivateRoute の保証があるため通常到達しない
 
-      // トークンリフレッシュ時の再取得を防ぐ（初回のみ）
-      if (hasFetched.current) return;
-      hasFetched.current = true;
-
-      const fetchData = async () => {
-        try {
-          // Firestore からプロフィールを取得
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (!snap.exists()) {
-            // Firestore ドキュメントが存在しない（異常系）
-            setFetchError(true);
-            return;
-          }
-          const data = snap.data() as UserProfile;
-          setProfile(data);
-          setEditName(data.displayName);
-
-          // ゴミ拾い履歴を取得（新しい順、最大50件）
-          const q = query(
-            collection(db, "pickups"),
-            where("userId", "==", user.uid),
-            orderBy("createdAt", "desc"),
-            limit(50)
-          );
-          const pickupSnap = await getDocs(q);
-          setPickups(
-            pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-          );
-        } catch {
+    const fetchData = async () => {
+      try {
+        // Firestore からプロフィールを取得
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!snap.exists()) {
           setFetchError(true);
-        } finally {
-          setLoading(false);
+          return;
         }
-      };
+        const data = snap.data() as UserProfile;
+        setProfile(data);
+        setEditName(data.displayName);
 
-      fetchData();
-    });
+        // ゴミ拾い履歴を取得（新しい順、最大50件）
+        const q = query(
+          collection(db, "pickups"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(50)
+        );
+        const pickupSnap = await getDocs(q);
+        setPickups(
+          pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+        );
+      } catch {
+        setFetchError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => unsubscribe();
-  }, [navigate]);
+    fetchData();
+  }, []);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
