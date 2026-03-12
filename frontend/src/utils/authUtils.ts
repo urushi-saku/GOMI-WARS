@@ -89,6 +89,11 @@ export function getAuthErrorMessage(error: unknown): string {
  * @param user - Firebase Auth のユーザーオブジェクト
  */
 export async function createUserDocIfNotExists(user: User) {
+  // onAuthStateChanged 直後は ID トークンが Firestore クライアントに
+  // まだ渡っていない場合がある。getIdToken() で明示的に取得してから
+  // Firestore リクエストを発行することで race condition を回避する
+  await user.getIdToken();
+
   const userRef = doc(db, "users", user.uid);
 
   await runTransaction(db, async (transaction) => {
