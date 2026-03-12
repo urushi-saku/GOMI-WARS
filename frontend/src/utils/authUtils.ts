@@ -36,12 +36,10 @@ export async function signupWithEmail(email: string, password: string) {
 /**
  * Googleポップアップでサインイン（ログイン・新規登録共通）
  * Firebase Auth の signInWithPopup を使用して Google OAuth フローを実行
- * @returns Googleでサインインしたユーザー情報と ID トークン
+ * @returns Googleでサインインしたユーザー情報
  */
 export async function signInWithGoogle() {
   const result = await signInWithPopup(auth, googleProvider);
-  const idToken = await result.user.getIdToken();
-  console.log(`User: ${result.user.displayName} | ID Token: ${idToken}`);
   return result.user;
 }
 

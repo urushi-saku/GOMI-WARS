@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "../contexts/AuthContext";
 import {
   doc,
   getDoc,
@@ -11,13 +11,15 @@ import {
   limit,
   getDocs,
 } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { updateDisplayName } from "../utils/authUtils";
 import type { UserProfile, Pickup } from "../types";
 import styles from "./Profile.module.css";
 
 export default function Profile() {
   const navigate = useNavigate();
+  // PrivateRoute が user の存在を保証しているため non-null アサーションは安全
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [editName, setEditName] = useState("");
@@ -25,78 +27,45 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
-  // 複数回発火する onAuthStateChanged 内でデータ取得を1度だけに制御するフラグ
-  const hasFetched = useRef(false);
 
-  const fetchData = useCallback(async (uid: string) => {
-    setLoading(true);
-    setFetchError(false);
-    try {
-      // プロフィールとゴミ拾い履歴を並列取得（互いに依存しないため）
-      const [snap, pickupSnap] = await Promise.all([
-        getDoc(doc(db, "users", uid)),
-        getDocs(
-          query(
-            collection(db, "pickups"),
-            where("userId", "==", uid),
-            orderBy("createdAt", "desc"),
-            limit(50)
-          )
-        ),
-      ]);
-
-      if (!snap.exists()) {
-        // Firestore ドキュメントが存在しない（異常系）
-        hasFetched.current = false;
-        setFetchError(true);
-        return;
-      }
-      const data = snap.data() as UserProfile;
-      setProfile(data);
-      setEditName(data.displayName);
-      setPickups(
-        pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-      );
-    } catch {
-      // 失敗時はフラグを戻してリトライ可能にする
-      hasFetched.current = false;
-      setFetchError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // onAuthStateChanged でログアウト検知 + 初回のみデータ取得
-  // auth.currentUser を直接参照せず onAuthStateChanged を待つことで、
-  // Firebase Auth 初期化前の race condition を防ぐ
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        navigate("/login", { replace: true });
-        return;
+    if (!user) return; // PrivateRoute の保証があるため通常到達しない
+
+    const fetchData = async () => {
+      try {
+        // Firestore からプロフィールを取得
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (!snap.exists()) {
+          setFetchError(true);
+          return;
+        }
+        const data = snap.data() as UserProfile;
+        setProfile(data);
+        setEditName(data.displayName);
+
+        // ゴミ拾い履歴を取得（新しい順、最大50件）
+        const q = query(
+          collection(db, "pickups"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(50)
+        );
+        const pickupSnap = await getDocs(q);
+        setPickups(
+          pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+        );
+      } catch {
+        setFetchError(true);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // トークンリフレッシュ時の再取得を防ぐ（初回のみ）
-      if (hasFetched.current) return;
-      hasFetched.current = true;
-
-      fetchData(user.uid);
-    });
-
-    return () => unsubscribe();
-  }, [navigate, fetchData]);
-
-  /** 再読み込みボタンのハンドラ */
-  const handleRetry = useCallback(() => {
-    const user = auth.currentUser;
-    if (!user) return;
-    hasFetched.current = false;
-    fetchData(user.uid);
-  }, [fetchData]);
+    fetchData();
+  }, []);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
-    const user = auth.currentUser;
     if (!user) return;
 
     if (editName.trim() === "") {
