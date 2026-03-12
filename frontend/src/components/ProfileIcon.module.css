@@ -1,0 +1,34 @@
+/* ProfileIcon.module.css */
+/* TODO: CSS担当者が仕上げ予定（neon/HUD テーマに合わせてください） */
+
+/* --- HUD アイコン本体（最低限の位置指定） --- */
+.hudIcon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: block;
+  border: 2px solid var(--cy-cyan, #00f3ff);
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease;
+}
+
+.hudIcon:hover,
+.hudIcon:active {
+  box-shadow: 0 0 16px rgba(0, 243, 255, 1);
+}
+
+.avatar,
+.avatarSvg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: rgba(0, 10, 20, 0.9);
+}
