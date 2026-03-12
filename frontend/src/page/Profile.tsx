@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -98,7 +98,10 @@ export default function Profile() {
   if (fetchError || !profile) {
     return (
       <div className={styles.loading}>
-        ERROR: プロフィールデータを取得できませんでした。
+        <p>ERROR: プロフィールデータを取得できませんでした。</p>
+        <button type="button" onClick={handleRetry}>
+          再読み込み
+        </button>
       </div>
     );
   }
@@ -107,7 +110,7 @@ export default function Profile() {
     <div className={styles.container}>
       {/* ヘッダー */}
       <header className={styles.header}>
-        <button onClick={() => navigate(-1)} className={styles.backButton}>
+        <button type="button" onClick={() => navigate(-1)} className={styles.backButton}>
           &lt; BACK
         </button>
         <h1 className={styles.title}>AGENT PROFILE</h1>
@@ -156,6 +159,7 @@ export default function Profile() {
             minLength={1}
           />
           <button
+            type="button"
             className={styles.saveButton}
             onClick={handleNameSave}
             disabled={saving}
@@ -180,6 +184,8 @@ export default function Profile() {
                     src={p.imageURL}
                     alt={p.itemName}
                     className={styles.pickupImage}
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
                 <div className={styles.pickupInfo}>

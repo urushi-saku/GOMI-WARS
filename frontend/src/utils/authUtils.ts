@@ -160,18 +160,36 @@ export async function saveInitialProfile(
 
 /**
  * プロフィール画面からユーザー名を更新する
- * Firebase Auth の displayName と Firestore の両方を更新する
+ * Firebase Auth と Firestore の displayName を両方更新する。
+ *
+ * 更新順序: Firestore → Firebase Auth
+ * Firestore を先に更新し、Auth 更新が失敗した場合に Firestore を元の値に
+ * ロールバックすることで、両者の不整合を防ぐ。
+ *
  * @param user - Firebase Auth のユーザーオブジェクト
  * @param displayName - 新しいユーザー名
  */
 export async function updateDisplayName(user: User, displayName: string) {
-  // Firebase Auth のプロフィールを更新
-  await updateProfile(user, { displayName });
-
-  // Firestore のドキュメントも更新
+  const previousDisplayName = user.displayName ?? "";
   const userRef = doc(db, "users", user.uid);
+
+  // 1. Firestore を先に更新
   await updateDoc(userRef, {
     displayName,
     updatedAt: serverTimestamp(),
   });
+
+  // 2. Firebase Auth を更新。失敗時は Firestore をロールバックして不整合を回避
+  try {
+    await updateProfile(user, { displayName });
+  } catch (authError) {
+    // Auth 更新失敗 → Firestore を元の値に戻す
+    await updateDoc(userRef, {
+      displayName: previousDisplayName,
+      updatedAt: serverTimestamp(),
+    }).catch(() => {
+      // ロールバック自体も失敗した場合は上位に任せて握りつぶさない
+    });
+    throw authError;
+  }
 }
