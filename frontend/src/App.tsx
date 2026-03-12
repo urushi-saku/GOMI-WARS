@@ -8,6 +8,7 @@ import Signup from "./page/Signup";
 import Home from "./page/Home";
 import Login from "./page/Login";
 import InitialProfile from "./page/InitialProfile";
+import Ranking from "./page/Ranking";
 
 /**
  * App メインコンポーネント
@@ -83,6 +84,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />              {/* 新規登録画面 */}
         <Route path="/login" element={<Login />} />                {/* ログイン画面 */}
         <Route path="/welcome" element={<InitialProfile />} />     {/* プロフィール初期設定画面 */}
+        <Route path="/ranking" element={<Ranking />} />            {/* ランキング画面 */}
       </Routes>
     </>
   );

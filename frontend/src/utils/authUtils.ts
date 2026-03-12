@@ -106,10 +106,11 @@ export async function createUserDocIfNotExists(user: User) {
         uid: user.uid,
         displayName: user.displayName ?? "",
         photoURL: user.photoURL ?? "",
-        totalPoints: 0,           // 初期ポイント
+        totalPoint: 0,            // バックエンドが increment するフィールド（単数形）
+        totalPoints: 0,           // フロント表示用（後方互換）
         totalPickups: 0,          // ゴミ拾い回数の初期値
-        createdAt: serverTimestamp(),    // ドキュメント作成日時
-        updatedAt: serverTimestamp(),    // 最後更新日時
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
     }
   });
@@ -155,11 +156,12 @@ export async function saveInitialProfile(
 
     transaction.set(userRef, {
       uid: user.uid,
-      displayName,                        // ユーザーが入力した名前
-      photoURL,                           // Storage から取得したアバター画像URL
-      totalPoints:  existing?.totalPoints  ?? 0,  // 既存ポイントを保持（初回は0）
-      totalPickups: existing?.totalPickups ?? 0,  // 既存回数を保持（初回は0）
-      createdAt: existing?.createdAt ?? serverTimestamp(), // 初回のみ設定
+      displayName,
+      photoURL,
+      totalPoint:  existing?.totalPoint  ?? 0,  // バックエンドが increment するフィールド（上書き削除を防ぐ）
+      totalPoints: existing?.totalPoints ?? 0,  // フロント表示用（後方互換）
+      totalPickups: existing?.totalPickups ?? 0,
+      createdAt: existing?.createdAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
   });

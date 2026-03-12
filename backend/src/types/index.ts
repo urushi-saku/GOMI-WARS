@@ -13,7 +13,8 @@ export interface AssessmentResult {
 export interface User {
   uid: string
   email?: string
-  createdAt: Timestamp 
+  createdAt: Timestamp
+  updatedAt: Timestamp   // ポイント加算のたびに更新（同点時の順位決定に使用）
   role: 'user' | 'admin'
   totalPoint: number
 }

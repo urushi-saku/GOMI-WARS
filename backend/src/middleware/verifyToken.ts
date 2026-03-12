@@ -11,7 +11,7 @@ declare global {
 }
 
 /**
- * Authorization: Bearer <Firebase IDトークン> を検証するミドルウェア
+ * Authorization: Bearer <Firebase IDトークン> を検証するミドルウェア（必須）
  */
 export const verifyToken = async (
   req: Request,
@@ -34,4 +34,31 @@ export const verifyToken = async (
   } catch {
     res.status(401).json({ error: 'トークンが無効です' })
   }
+}
+
+/**
+ * Authorization ヘッダーが存在すれば検証して req.uid をセット、
+ * 存在しない場合は uid=undefined のまま next() を呼ぶ（ゲスト許可）
+ */
+export const optionalVerifyToken = async (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const authHeader = req.headers.authorization
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    next()
+    return
+  }
+
+  const idToken = authHeader.split('Bearer ')[1]
+
+  try {
+    const decoded = await auth.verifyIdToken(idToken)
+    req.uid = decoded.uid
+  } catch {
+    // トークンが不正でも続行（uid は undefined のまま）
+  }
+  next()
 }
