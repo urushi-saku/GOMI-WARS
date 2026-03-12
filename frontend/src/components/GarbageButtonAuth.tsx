@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useDialogFocusTrap } from "../hooks/useDialogFocusTrap";
+import { useCameraPermission } from "../hooks/useCameraPermission";
 import { assessGarbage, fileToBase64 } from "../utils/assessApi";
 import type { AssessmentResult } from "../types";
 
@@ -35,6 +36,9 @@ export default function GarbageButtonAuth() {
   const triggerRef = useRef<HTMLButtonElement>(null);
   // カメラ input への参照（撮り直し時に value をリセットして same-file issue を防ぐ）
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // カメラパーミッション状態（denied のとき設定案内を表示）
+  const cameraPermission = useCameraPermission();
 
   /**
    * モーダルを閉じてすべての状態をリセットする
@@ -159,19 +163,31 @@ export default function GarbageButtonAuth() {
           {step === "select" && (
             <>
               <h2 id="garbage-modal-title">ゴミを撮影する</h2>
-              {error && <p role="alert">{error}</p>}
-              <label htmlFor="garbage-camera">
-                📷 カメラで撮影
-                <input
-                  ref={cameraInputRef}
-                  type="file"
-                  id="garbage-camera"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFileChange}
-                  style={{ display: "none" }}
-                />
-              </label>
+              {cameraPermission === "denied" ? (
+                // カメラ権限が拒否されている場合：設定変更を案内
+                <p role="alert">
+                  カメラへのアクセスが拒否されています。
+                  <br />
+                  ブラウザの設定からカメラの使用を許可してください。
+                </p>
+              ) : (
+                // granted / prompt / unsupported はいずれも通常フローで継続
+                <>
+                  {error && <p role="alert">{error}</p>}
+                  <label htmlFor="garbage-camera">
+                    📷 カメラで撮影
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      id="garbage-camera"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFileChange}
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                </>
+              )}
             </>
           )}
 
