@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -28,6 +28,44 @@ export default function Profile() {
   // 複数回発火する onAuthStateChanged 内でデータ取得を1度だけに制御するフラグ
   const hasFetched = useRef(false);
 
+  const fetchData = useCallback(async (uid: string) => {
+    setLoading(true);
+    setFetchError(false);
+    try {
+      // プロフィールとゴミ拾い履歴を並列取得（互いに依存しないため）
+      const [snap, pickupSnap] = await Promise.all([
+        getDoc(doc(db, "users", uid)),
+        getDocs(
+          query(
+            collection(db, "pickups"),
+            where("userId", "==", uid),
+            orderBy("createdAt", "desc"),
+            limit(50)
+          )
+        ),
+      ]);
+
+      if (!snap.exists()) {
+        // Firestore ドキュメントが存在しない（異常系）
+        hasFetched.current = false;
+        setFetchError(true);
+        return;
+      }
+      const data = snap.data() as UserProfile;
+      setProfile(data);
+      setEditName(data.displayName);
+      setPickups(
+        pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+      );
+    } catch {
+      // 失敗時はフラグを戻してリトライ可能にする
+      hasFetched.current = false;
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // onAuthStateChanged でログアウト検知 + 初回のみデータ取得
   // auth.currentUser を直接参照せず onAuthStateChanged を待つことで、
   // Firebase Auth 初期化前の race condition を防ぐ
@@ -42,42 +80,19 @@ export default function Profile() {
       if (hasFetched.current) return;
       hasFetched.current = true;
 
-      const fetchData = async () => {
-        try {
-          // Firestore からプロフィールを取得
-          const snap = await getDoc(doc(db, "users", user.uid));
-          if (!snap.exists()) {
-            // Firestore ドキュメントが存在しない（異常系）
-            setFetchError(true);
-            return;
-          }
-          const data = snap.data() as UserProfile;
-          setProfile(data);
-          setEditName(data.displayName);
-
-          // ゴミ拾い履歴を取得（新しい順、最大50件）
-          const q = query(
-            collection(db, "pickups"),
-            where("userId", "==", user.uid),
-            orderBy("createdAt", "desc"),
-            limit(50)
-          );
-          const pickupSnap = await getDocs(q);
-          setPickups(
-            pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-          );
-        } catch {
-          setFetchError(true);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchData();
+      fetchData(user.uid);
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, fetchData]);
+
+  /** 再読み込みボタンのハンドラ */
+  const handleRetry = useCallback(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+    hasFetched.current = false;
+    fetchData(user.uid);
+  }, [fetchData]);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
@@ -114,7 +129,10 @@ export default function Profile() {
   if (fetchError || !profile) {
     return (
       <div className={styles.loading}>
-        ERROR: プロフィールデータを取得できませんでした。
+        <p>ERROR: プロフィールデータを取得できませんでした。</p>
+        <button type="button" onClick={handleRetry}>
+          再読み込み
+        </button>
       </div>
     );
   }
@@ -123,7 +141,7 @@ export default function Profile() {
     <div className={styles.container}>
       {/* ヘッダー */}
       <header className={styles.header}>
-        <button onClick={() => navigate(-1)} className={styles.backButton}>
+        <button type="button" onClick={() => navigate(-1)} className={styles.backButton}>
           &lt; BACK
         </button>
         <h1 className={styles.title}>AGENT PROFILE</h1>
@@ -172,6 +190,7 @@ export default function Profile() {
             minLength={1}
           />
           <button
+            type="button"
             className={styles.saveButton}
             onClick={handleNameSave}
             disabled={saving}
@@ -196,6 +215,8 @@ export default function Profile() {
                     src={p.imageURL}
                     alt={p.itemName}
                     className={styles.pickupImage}
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
                 <div className={styles.pickupInfo}>
