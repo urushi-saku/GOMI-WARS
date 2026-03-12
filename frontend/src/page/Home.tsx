@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
 import MapContainer from "../components/MapContainer";
-import GarbageButton from "../components/GarbageButton";
 import GarbageButtonAuth from "../components/GarbageButtonAuth";
 import ProfileIcon from "../components/ProfileIcon";
 import styles from "./Home.module.css";
@@ -44,7 +43,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                {user ? <GarbageButtonAuth /> : <GarbageButton />}
+                <GarbageButtonAuth />
                 <button onClick={handleSignOut} className={styles.actionButton}>[ ログアウト ]</button>
               </>
             )}

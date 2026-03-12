@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import {
   doc,
   getDoc,
@@ -10,13 +11,15 @@ import {
   limit,
   getDocs,
 } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { updateDisplayName } from "../utils/authUtils";
 import type { UserProfile, Pickup } from "../types";
 import styles from "./Profile.module.css";
 
 export default function Profile() {
   const navigate = useNavigate();
+  // PrivateRoute が user の存在を保証しているため non-null アサーションは安全
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [pickups, setPickups] = useState<Pickup[]>([]);
   const [editName, setEditName] = useState("");
@@ -25,10 +28,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  // PrivateRoute が「ログイン済み」を保証した上でこのコンポーネントが描画されるため、
-  // auth.currentUser は必ず non-null。onAuthStateChanged を待つ必要はない。
   useEffect(() => {
-    const user = auth.currentUser;
     if (!user) return; // PrivateRoute の保証があるため通常到達しない
 
     const fetchData = async () => {
@@ -66,7 +66,6 @@ export default function Profile() {
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
-    const user = auth.currentUser;
     if (!user) return;
 
     if (editName.trim() === "") {
