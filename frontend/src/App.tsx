@@ -64,9 +64,9 @@ function App() {
               state: { error: "アカウント情報の保存に失敗しました。再度ログインしてください。" },
             });
           }
-        } else if (currentPath !== "/welcome") {
-          // その他のページからのログイン時
-          // /welcome ページ以外の場合はホーム画面へリダイレクト
+        } else if (!(["/welcome", "/profile"] as string[]).includes(currentPath)) {
+          // 認証済みユーザーが使う保護ページ以外（例：未知のページに直接アクセス）はホームへ
+          // /welcome と /profile はログイン済みユーザーが正常に滞在するページなのでリダイレクト対象外
           navigate("/", { replace: true });
         }
       }

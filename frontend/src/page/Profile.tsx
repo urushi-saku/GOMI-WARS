@@ -24,39 +24,56 @@ export default function Profile() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
+  // ログアウト検知のみ担当（データ取得とは分離）
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
         navigate("/login", { replace: true });
-        return;
       }
-
-      // Firestore からプロフィールを取得
-      const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists()) {
-        const data = snap.data() as UserProfile;
-        setProfile(data);
-        setEditName(data.displayName);
-      }
-
-      // ゴミ拾い履歴を取得（新しい順、最大50件）
-      const q = query(
-        collection(db, "pickups"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc"),
-        limit(50)
-      );
-      const pickupSnap = await getDocs(q);
-      setPickups(
-        pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-      );
-
-      setLoading(false);
     });
-
     return () => unsubscribe();
   }, [navigate]);
+
+  // 初回マウント時に1回だけデータ取得
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const fetchData = async () => {
+      try {
+        // Firestore からプロフィールを取得
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+          const data = snap.data() as UserProfile;
+          setProfile(data);
+          setEditName(data.displayName);
+        } else {
+          // Firestore ドキュメントが存在しない（異常系）
+          setFetchError(true);
+        }
+
+        // ゴミ拾い履歴を取得（新しい順、最大50件）
+        const q = query(
+          collection(db, "pickups"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc"),
+          limit(50)
+        );
+        const pickupSnap = await getDocs(q);
+        setPickups(
+          pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+        );
+      } catch {
+        setFetchError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
@@ -90,7 +107,13 @@ export default function Profile() {
     return <div className={styles.loading}>LOADING...</div>;
   }
 
-  if (!profile) return null;
+  if (fetchError || !profile) {
+    return (
+      <div className={styles.loading}>
+        ERROR: プロフィールデータを取得できませんでした。
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
