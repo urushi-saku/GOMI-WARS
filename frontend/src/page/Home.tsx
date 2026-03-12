@@ -1,8 +1,7 @@
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { Link } from "react-router-dom";
 import { auth } from "../lib/firebase";
-import { useEffect, useState } from "react";
-import type { User } from "firebase/auth";
+import { useAuth } from "../contexts/AuthContext";
 import MapContainer from "../components/MapContainer";
 import GarbageButton from "../components/GarbageButton";
 import GarbageButtonAuth from "../components/GarbageButtonAuth";
@@ -10,14 +9,8 @@ import ProfileIcon from "../components/ProfileIcon";
 import styles from "./Home.module.css";
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
+  // AuthContext から user を取得（独自リスナー不要）
+  const { user } = useAuth();
 
   const handleSignOut = async () => {
     try {

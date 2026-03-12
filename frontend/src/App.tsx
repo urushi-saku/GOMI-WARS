@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import { auth, API_BASE_URL } from "./lib/firebase";
 import { createUserDocIfNotExists } from "./utils/authUtils";
 import { useAuth } from "./contexts/AuthContext";
@@ -19,7 +19,7 @@ import PrivateRoute from "./components/PrivateRoute";
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { authLoading } = useAuth();
+  const { user, authLoading } = useAuth();
 
   // アプリ起動時に Render サーバーをウォームアップ（スリープ解除）
   useEffect(() => {
@@ -38,43 +38,40 @@ function App() {
   }, [location]);
 
   /**
-   * Firebase 認証状態の監視
-   * ユーザーのログイン/ログアウト状態が変わるたびに実行される
+   * ログイン完了後のリダイレクト処理
+   * AuthContext の user を監視することで onAuthStateChanged リスナーを1本に集約する
+   * - authLoading 中はスキップ（初期化完了前の誤発火を防ぐ）
+   * - user が null（未ログイン）はスキップ（PrivateRoute が担当）
+   * - /signup → /welcome（プロフィール初期設定画面）
+   * - /login  → Firestore ドキュメント確認 → /（ホーム画面）
    */
   useEffect(() => {
-    // Firebase の認証状態が変わるリスナーを登録
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // ユーザーがログイン中の場合の処理
-        const currentPath = locationRef.current.pathname;
-        
-        if (currentPath === "/signup") {
-          // 新規登録フロー: /signup → /welcome（プロフィール初期設定画面へ)
-          navigate("/welcome", { replace: true });
-        } else if (currentPath === "/login") {
-          // ログインフロー: /login → Firestoreドキュメント確認 → /（ホーム画面へ）
-          // Google ログインやメールログイン後、Firestoreに既にドキュメントがあるかチェック
-          // なければ新規作成（既にあれば何もしない - べき等性を保証）
-          try {
-            await createUserDocIfNotExists(user);
-            navigate("/", { replace: true });
-          } catch {
-            // Firestore への書き込みに失敗した場合は、
-            // 不整合状態を避けるためサインアウトしてログインページに戻す
-            await signOut(auth);
-            navigate("/login", {
-              replace: true,
-              state: { error: "アカウント情報の保存に失敗しました。再度ログインしてください。" },
-            });
-          }
+    if (authLoading || !user) return;
+
+    const currentPath = locationRef.current.pathname;
+
+    if (currentPath === "/signup") {
+      // 新規登録フロー: /signup → /welcome
+      navigate("/welcome", { replace: true });
+    } else if (currentPath === "/login") {
+      // ログインフロー: Firestore ドキュメント確認 → /
+      const run = async () => {
+        try {
+          await createUserDocIfNotExists(user);
+          navigate("/", { replace: true });
+        } catch {
+          // Firestore への書き込み失敗時はサインアウトしてログインページへ戻す
+          await signOut(auth);
+          navigate("/login", {
+            replace: true,
+            state: { error: "アカウント情報の保存に失敗しました。再度ログインしてください。" },
+          });
         }
-        // /welcome と /profile は PrivateRoute が管理するため、ここでの追加制御は不要
-      }
-    });
-    
-    // クリーンアップ: コンポーネントがアンマウントされたときリスナーを解除
-    return () => unsubscribe();
-  }, [navigate]);
+      };
+      run();
+    }
+    // /welcome と /profile は PrivateRoute が担当するため追加制御不要
+  }, [user, authLoading, navigate]);
 
   // Firebase Auth の初期化完了まで全画面ローディングを表示し、UIのチラつき（フラッシュ）を防ぐ
   // TODO: CSS担当者 → 以下のインラインスタイルをグローバルCSSクラスに移行してください
