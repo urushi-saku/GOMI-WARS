@@ -5,7 +5,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, serverTimestamp, runTransaction } from "firebase/firestore";
+import { doc, serverTimestamp, runTransaction, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, googleProvider, db, storage } from "../lib/firebase";
 
@@ -157,5 +157,23 @@ export async function saveInitialProfile(
       createdAt: existing?.createdAt ?? serverTimestamp(), // 初回のみ設定
       updatedAt: serverTimestamp(),
     });
+  });
+}
+
+/**
+ * プロフィール画面からユーザー名を更新する
+ * Firebase Auth の displayName と Firestore の両方を更新する
+ * @param user - Firebase Auth のユーザーオブジェクト
+ * @param displayName - 新しいユーザー名
+ */
+export async function updateDisplayName(user: User, displayName: string) {
+  // Firebase Auth のプロフィールを更新
+  await updateProfile(user, { displayName });
+
+  // Firestore のドキュメントも更新
+  const userRef = doc(db, "users", user.uid);
+  await updateDoc(userRef, {
+    displayName,
+    updatedAt: serverTimestamp(),
   });
 }

@@ -1,0 +1,271 @@
+/* Profile.module.css */
+/* TODO: CSS担当者が仕上げ予定（neon/HUD テーマに合わせてください） */
+/*
+  使用クラス一覧:
+    container, header, backButton, title,
+    avatarSection, avatarImg, avatarPlaceholder, displayNameLabel,
+    statusSection, stat, statLabel, statValue,
+    editSection, inputLabel, inputRow, input, saveButton, error,
+    historySection, sectionTitle, emptyMessage,
+    pickupList, pickupItem, pickupImage, pickupInfo, pickupName, pickupPoint, pickupComment,
+    loading
+*/
+
+/* --- レイアウト（最低限） --- */
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  box-sizing: border-box;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--cy-cyan, #00f3ff);
+  font-family: var(--font-display);
+  letter-spacing: 4px;
+}
+
+/* --- ヘッダー --- */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--cy-cyan, #00f3ff);
+  padding-bottom: 1rem;
+}
+
+.backButton {
+  background: transparent;
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  color: var(--cy-cyan, #00f3ff);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.2s;
+}
+
+.backButton:hover {
+  background: rgba(0, 243, 255, 0.15);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--cy-cyan, #00f3ff);
+  margin: 0;
+  letter-spacing: 4px;
+}
+
+/* --- アバター --- */
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.avatarImg,
+.avatarPlaceholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--cy-cyan, #00f3ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 10, 20, 0.9);
+  font-size: 1.8rem;
+  color: var(--cy-cyan, #00f3ff);
+  flex-shrink: 0;
+}
+
+.displayNameLabel {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+/* --- ステータス --- */
+.statusSection {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stat {
+  flex: 1;
+  background: var(--cy-panel, rgba(0, 10, 20, 0.85));
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
+}
+
+.statLabel {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--cy-cyan, #00f3ff);
+  letter-spacing: 3px;
+  opacity: 0.8;
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px var(--cy-cyan, #00f3ff);
+}
+
+/* --- 名前編集 --- */
+.editSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.inputLabel {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: var(--cy-cyan, #00f3ff);
+  letter-spacing: 3px;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.input {
+  flex: 1;
+  background: rgba(0, 10, 20, 0.9);
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  padding: 10px 14px;
+  outline: none;
+  letter-spacing: 2px;
+}
+
+.input:focus {
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.saveButton {
+  background: transparent;
+  border: 1px solid var(--cy-cyan, #00f3ff);
+  color: var(--cy-cyan, #00f3ff);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: rgba(0, 243, 255, 0.15);
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: var(--cy-magenta, #ff00ea);
+  font-size: 0.85rem;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* --- 履歴 --- */
+.historySection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--cy-cyan, #00f3ff);
+  letter-spacing: 4px;
+  margin: 0;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.emptyMessage {
+  color: rgba(0, 243, 255, 0.5);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+}
+
+.pickupList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pickupItem {
+  display: flex;
+  gap: 1rem;
+  background: var(--cy-panel, rgba(0, 10, 20, 0.85));
+  border: 1px solid rgba(0, 243, 255, 0.3);
+  padding: 0.8rem;
+}
+
+.pickupImage {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 243, 255, 0.3);
+}
+
+.pickupInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.pickupName {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.pickupPoint {
+  font-family: var(--font-display);
+  color: var(--cy-magenta, #ff00ea);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-shadow: 0 0 6px var(--cy-magenta, #ff00ea);
+}
+
+.pickupComment {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  margin: 0;
+  line-height: 1.5;
+}

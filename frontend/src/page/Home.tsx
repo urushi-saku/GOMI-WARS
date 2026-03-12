@@ -6,6 +6,7 @@ import type { User } from "firebase/auth";
 import MapContainer from "../components/MapContainer";
 import GarbageButton from "../components/GarbageButton";
 import GarbageButtonAuth from "../components/GarbageButtonAuth";
+import ProfileIcon from "../components/ProfileIcon";
 import styles from "./Home.module.css";
 
 export default function Home() {
@@ -67,6 +68,7 @@ export default function Home() {
             <span className={styles.mapLabel}>TERRITORY SCANNER</span>
             <span className={styles.mapCoords}>LAT:35.68 LNG:139.76</span>
           </div>
+          {user && <ProfileIcon user={user} />}
           <MapContainer />
         </div>
       </div>
