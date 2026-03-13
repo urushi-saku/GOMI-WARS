@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -28,41 +28,48 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  useEffect(() => {
-    if (!user) return; // PrivateRoute の保証があるため通常到達しない
-
-    const fetchData = async () => {
-      try {
-        // Firestore からプロフィールを取得
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (!snap.exists()) {
-          setFetchError(true);
-          return;
-        }
-        const data = snap.data() as UserProfile;
-        setProfile(data);
-        setEditName(data.displayName);
-
-        // ゴミ拾い履歴を取得（新しい順、最大50件）
-        const q = query(
-          collection(db, "pickups"),
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc"),
-          limit(50)
-        );
-        const pickupSnap = await getDocs(q);
-        setPickups(
-          pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
-        );
-      } catch {
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    setFetchError(false);
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
         setFetchError(true);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
+      const raw = snap.data();
+      // 旧フィールド totalPoints (複数形) が残っている場合も正しく読み取る
+      const data: UserProfile = {
+        ...(raw as UserProfile),
+        totalPoint: raw["totalPoint"] ?? raw["totalPoints"] ?? 0,
+        totalPickups: raw["totalPickups"] ?? 0,
+      };
+      setProfile(data);
+      setEditName(data.displayName);
 
+      const q = query(
+        collection(db, "pickups"),
+        where("userId", "==", user.uid),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const pickupSnap = await getDocs(q);
+      setPickups(
+        pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
+      );
+    } catch {
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const handleRetry = () => fetchData();
+
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
@@ -135,7 +142,7 @@ export default function Profile() {
       <section className={styles.statusSection}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>TOTAL POINTS</span>
-          <span className={styles.statValue}>{profile.totalPoints}</span>
+          <span className={styles.statValue}>{profile.totalPoint}</span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>PICKUPS</span>

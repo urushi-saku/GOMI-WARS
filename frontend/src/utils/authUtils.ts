@@ -5,7 +5,7 @@ import {
   updateProfile,
   type User,
 } from "firebase/auth";
-import { doc, serverTimestamp, runTransaction, updateDoc } from "firebase/firestore";
+import { doc, serverTimestamp, runTransaction, updateDoc, deleteField } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { auth, googleProvider, db, storage } from "../lib/firebase";
 
@@ -104,8 +104,7 @@ export async function createUserDocIfNotExists(user: User) {
         uid: user.uid,
         displayName: user.displayName ?? "",
         photoURL: user.photoURL ?? "",
-        totalPoint: 0,            // バックエンドが increment するフィールド（単数形）
-        totalPoints: 0,           // フロント表示用（後方互換）
+        totalPoint: 0,            // バックエンドが increment するフィールド名に統一
         totalPickups: 0,          // ゴミ拾い回数の初期値
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -119,7 +118,10 @@ export async function createUserDocIfNotExists(user: User) {
  * 以下の処理を実行:
  * 1. 画像がある場合 → Firebase Storage に画像をアップロード
  * 2. Firebase Auth のプロフィール属性を更新
- * 3. Firestore に新しいユーザードキュメントを保存または上書き
+ * 3. Firestore のユーザードキュメントを更新（新規の場合は作成）
+ *
+ * 既存ドキュメントには displayName / photoURL / updatedAt のみ書き込み、
+ * email / role / totalPoint など他フィールドは一切触らない。
  * @param user - Firebase Auth のユーザーオブジェクト
  * @param displayName - ユーザーが入力した表示名
  * @param photoFile - プロフィール画像ファイル（オプション）
@@ -145,23 +147,40 @@ export async function saveInitialProfile(
 
   const userRef = doc(db, "users", user.uid);
 
-  // runTransaction で「読み取り → 書き込み」をアトミックに実行
-  // 既存ドキュメントを読んでから値を上書きすることで、
-  // totalPoints / totalPickups / createdAt などの既存値を確実に保持する
   await runTransaction(db, async (transaction) => {
     const snap = await transaction.get(userRef);
-    const existing = snap.exists() ? snap.data() : null;
 
-    transaction.set(userRef, {
-      uid: user.uid,
+    // プロフィール更新で常に書くフィールドのみ定義
+    const profileFields = {
       displayName,
       photoURL,
-      totalPoint:  existing?.totalPoint  ?? 0,  // バックエンドが increment するフィールド（上書き削除を防ぐ）
-      totalPoints: existing?.totalPoints ?? 0,  // フロント表示用（後方互換）
-      totalPickups: existing?.totalPickups ?? 0,
-      createdAt: existing?.createdAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
-    });
+    };
+
+    if (snap.exists()) {
+      // 既存ドキュメント: プロフィール関連フィールドのみ更新
+      // → email / role / totalPoint / createdAt など全フィールドを維持
+      const data = snap.data();
+      const updateFields: Record<string, unknown> = { ...profileFields };
+
+      // 旧フィールド totalPoints (複数形) → totalPoint (単数形) への移行
+      // totalPoints のみ存在し totalPoint が未設定の場合に限り一度だけ実行
+      if (data["totalPoints"] !== undefined && data["totalPoint"] === undefined) {
+        updateFields["totalPoint"] = data["totalPoints"];
+        updateFields["totalPoints"] = deleteField();
+      }
+
+      transaction.update(userRef, updateFields);
+    } else {
+      // 新規ドキュメント: 初期値もまとめてセット
+      transaction.set(userRef, {
+        uid: user.uid,
+        ...profileFields,
+        totalPoint: 0,
+        totalPickups: 0,
+        createdAt: serverTimestamp(),
+      });
+    }
   });
 }
 
