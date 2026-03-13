@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -28,11 +28,12 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     setFetchError(false);
     try {
-      const snap = await getDoc(doc(db, "users", user!.uid));
+      const snap = await getDoc(doc(db, "users", user.uid));
       if (!snap.exists()) {
         setFetchError(true);
         return;
@@ -49,7 +50,7 @@ export default function Profile() {
 
       const q = query(
         collection(db, "pickups"),
-        where("userId", "==", user!.uid),
+        where("userId", "==", user.uid),
         orderBy("createdAt", "desc"),
         limit(50)
       );
@@ -62,14 +63,13 @@ export default function Profile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const handleRetry = () => fetchData();
 
   useEffect(() => {
-    if (!user) return; // PrivateRoute の保証があるため通常到達しない
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   /** ユーザー名保存ハンドラ */
   const handleNameSave = async () => {
