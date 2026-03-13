@@ -40,10 +40,12 @@ export default function Home() {
               <>
                 <Link to="/signup" className={styles.actionButton}>[ ユーザ登録 ]</Link>
                 <Link to="/login" className={styles.actionButton}>[ ログイン ]</Link>
+                <Link to="/ranking" className={styles.actionButton}>[ ランキング ]</Link>
               </>
             ) : (
               <>
-                <GarbageButtonAuth />
+                {user ? <GarbageButtonAuth /> : <GarbageButton />}
+                <Link to="/ranking" className={styles.actionButton}>[ ランキング ]</Link>
                 <button onClick={handleSignOut} className={styles.actionButton}>[ ログアウト ]</button>
               </>
             )}

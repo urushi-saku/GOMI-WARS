@@ -106,8 +106,8 @@ export async function createUserDocIfNotExists(user: User) {
         photoURL: user.photoURL ?? "",
         totalPoint: 0,            // バックエンドが increment するフィールド名に統一
         totalPickups: 0,          // ゴミ拾い回数の初期値
-        createdAt: serverTimestamp(),    // ドキュメント作成日時
-        updatedAt: serverTimestamp(),    // 最後更新日時
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       });
     }
   });
