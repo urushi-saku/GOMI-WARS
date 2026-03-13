@@ -9,6 +9,7 @@ import Signup from "./page/Signup";
 import Home from "./page/Home";
 import Login from "./page/Login";
 import InitialProfile from "./page/InitialProfile";
+import Ranking from "./page/Ranking";
 import Profile from "./page/Profile";
 import PrivateRoute from "./components/PrivateRoute";
 
@@ -97,6 +98,7 @@ function App() {
     <>
       {/* ルーティング定義 */}
       <Routes>
+        <Route path="/ranking" element={<Ranking />} />            {/* ランキング画面 */}
         {/* パブリックルート（認証不要） */}
         <Route path="/" element={<Home />} />                   {/* ホーム画面 */}
         <Route path="/signup" element={<Signup />} />          {/* 新規登録画面 */}

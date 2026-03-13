@@ -10,7 +10,10 @@ export const addPointForUser = async (uid: string, point: number, transaction:Tr
   const newPoint = currentPoint + point
   
   transaction.set(userRef,
-  { totalPoint: FieldValue.increment(point) },
+  {
+    totalPoint: FieldValue.increment(point),
+    updatedAt: FieldValue.serverTimestamp(),  // 同点時の先着順ソート用
+  },
   { merge: true }
 )
   return { totalPoint: newPoint }
