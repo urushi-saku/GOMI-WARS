@@ -37,7 +37,13 @@ export default function Profile() {
         setFetchError(true);
         return;
       }
-      const data = snap.data() as UserProfile;
+      const raw = snap.data();
+      // 旧フィールド totalPoints (複数形) が残っている場合も正しく読み取る
+      const data: UserProfile = {
+        ...(raw as UserProfile),
+        totalPoint: raw["totalPoint"] ?? raw["totalPoints"] ?? 0,
+        totalPickups: raw["totalPickups"] ?? 0,
+      };
       setProfile(data);
       setEditName(data.displayName);
 
