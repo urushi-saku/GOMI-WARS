@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { db } from '../lib/firebase-admin'
-
+import { User } from '../types'
 
 export const setDisplayName = async (req: Request, res: Response) => {
   try {
@@ -19,10 +19,18 @@ export const setDisplayName = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'このユーザー名は既に使われています' })
     }
 
-    // 更新
-    await db.collection('users').doc(uid).update({
-      displayName
-    })
+
+    const userRef = db.collection('users').doc(uid)
+    const userDoc = await userRef.get()
+    const userData = userDoc.data() as User | undefined
+
+    if (!userData) {
+      return res.status(404).json({ error: 'ユーザーが見つかりません' })
+    }
+
+    // displayName 更新
+    await userRef.update({ displayName })
+    
 
     res.json({ success: true })
   } catch (error) {
