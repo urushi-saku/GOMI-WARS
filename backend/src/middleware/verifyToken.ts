@@ -25,7 +25,7 @@ export const verifyToken = async (
     return
   }
 
-  const idToken = authHeader.split('Bearer ')[1]
+  const idToken = authHeader.slice(7).trim()
 
   try {
     const decoded = await auth.verifyIdToken(idToken)
@@ -52,7 +52,7 @@ export const optionalVerifyToken = async (
     return
   }
 
-  const idToken = authHeader.split('Bearer ')[1]
+  const idToken = authHeader.slice(7).trim()
 
   try {
     const decoded = await auth.verifyIdToken(idToken)
