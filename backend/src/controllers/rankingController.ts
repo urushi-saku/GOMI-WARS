@@ -15,7 +15,7 @@ export interface RankingResponse {
  */
 export const getRanking = async (req: Request, res: Response): Promise<void> => {
   const rawLimit = parseInt(req.query.limit as string, 10)
-  const limit = isNaN(rawLimit) ? 20 : Math.min(rawLimit, 100)
+  const limit = isNaN(rawLimit) ? 20 : Math.min(Math.max(1, rawLimit), 100)
 
   try {
     const ranking = await getGlobalRanking(limit)

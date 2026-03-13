@@ -19,9 +19,7 @@ export interface RankingResponse {
  * 未ログイン時は myRank が null になる
  */
 export async function fetchRanking(limit = 20): Promise<RankingResponse> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
 
   // ログイン済みなら idToken をセット（オプション）
   const currentUser = auth.currentUser;

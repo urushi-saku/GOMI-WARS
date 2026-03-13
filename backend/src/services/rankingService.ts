@@ -8,6 +8,10 @@ export interface RankingEntry {
   totalPoint: number
 }
 
+/** 空文字・空白のみの場合もデフォルト名にフォールバック */
+const toDisplayName = (raw: unknown): string =>
+  (typeof raw === 'string' ? raw.trim() : '') || '名無しさん'
+
 /**
  * totalPoint の降順で上位 limit 件のユーザーランキングを返す
  */
@@ -24,7 +28,7 @@ export const getGlobalRanking = async (limit = 20): Promise<RankingEntry[]> => {
     return {
       rank: index + 1,
       uid: doc.id,
-      displayName: (data.displayName as string | undefined) ?? '名無しさん',
+      displayName: toDisplayName(data.displayName),
       photoURL: (data.photoURL as string | undefined) ?? null,
       totalPoint: (data.totalPoint as number | undefined) ?? 0,
     }
@@ -50,7 +54,7 @@ export const getUserEntry = async (uid: string): Promise<{ rank: number | null; 
     rank: index + 1,
     entry: {
       uid,
-      displayName: (data.displayName as string | undefined) ?? '名無しさん',
+      displayName: toDisplayName(data.displayName),
       photoURL: (data.photoURL as string | undefined) ?? null,
       totalPoint: (data.totalPoint as number | undefined) ?? 0,
     },
