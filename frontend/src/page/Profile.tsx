@@ -58,7 +58,8 @@ export default function Profile() {
       setPickups(
         pickupSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pickup))
       );
-    } catch {
+    } catch (err) {
+      console.error('Profile fetchData error:', err);
       setFetchError(true);
     } finally {
       setLoading(false);
