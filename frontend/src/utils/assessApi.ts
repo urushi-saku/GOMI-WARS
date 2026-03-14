@@ -7,12 +7,18 @@ export interface AssessPayload {
   location?: { lat: number; lng: number };
 }
 
+export interface AssessResponse {
+  aiResult: AssessmentResult;
+  totalPoint: number;
+}
+
 /**
  * ゴミ画像を Render の /api/assess に送信して査定結果を取得する
  */
 export async function assessGarbage(
-  payload: AssessPayload
-): Promise<AssessmentResult> {
+  payload: AssessPayload,
+  signal?: AbortSignal
+): Promise<AssessResponse> {
   const currentUser = auth.currentUser;
   if (!currentUser) {
     throw new Error("ログインが必要です");
@@ -27,6 +33,7 @@ export async function assessGarbage(
       Authorization: `Bearer ${idToken}`,
     },
     body: JSON.stringify(payload),
+    signal,
   });
 
   if (!res.ok) {
@@ -34,7 +41,8 @@ export async function assessGarbage(
     throw new Error((data as { error?: string }).error ?? `HTTP ${res.status}`);
   }
 
-  return res.json() as Promise<AssessmentResult>;
+  const data = await res.json();
+  return { aiResult: data.aiResult as AssessmentResult, totalPoint: data.totalPoint as number };
 }
 
 /**

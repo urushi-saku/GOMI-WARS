@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { AssessmentResult } from '../types'
 
 const SYSTEM_INSTRUCTION = `【Role / 役割】
@@ -56,34 +56,60 @@ const SYSTEM_INSTRUCTION = `【Role / 役割】
 
 必ずJSONのみを出力せよ。`
 
+const USER_PROMPT = 'この画像を査定せよ。'
+
+let ai: GoogleGenAI | null = null
+
+function getAI(): GoogleGenAI {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY が設定されていません')
+  }
+  if (!ai) {
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  }
+  return ai
+}
+
 export async function assessImage(
   imageBase64: string,
   mimeType: string
 ): Promise<AssessmentResult> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY が設定されていません')
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
+  const response = await getAI().models.generateContent({
     model: 'gemini-3-flash-preview',
-    systemInstruction: SYSTEM_INSTRUCTION,
-    generationConfig: {
+    contents: [
+      {
+        parts: [
+          {
+            inlineData: {
+              data: imageBase64,
+              mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
+            },
+          },
+          { text: USER_PROMPT },
+        ],
+      },
+    ],
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
       responseMimeType: 'application/json',
+      temperature: 0.2,
+      thinkingConfig: {
+        thinkingBudget: 1024,
+      },
     },
   })
 
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        data: imageBase64,
-        mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
-      },
-    },
-  ])
+  const text = response.text
+  if (!text) {
+    throw new Error('Gemini からの応答テキストが空です')
+  }
 
-  const assessment = JSON.parse(result.response.text()) as AssessmentResult
+  let assessment: AssessmentResult
+  try {
+    assessment = JSON.parse(text) as AssessmentResult
+  } catch {
+    throw new Error(`Gemini の応答を JSON としてパースできませんでした: ${text}`)
+  }
 
   // サーバー側でもポイントを強制的に 0 にする
   if (assessment.is_suspicious) {

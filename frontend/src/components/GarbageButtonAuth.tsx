@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { useDialogFocusTrap } from "../hooks/useDialogFocusTrap";
 import { assessGarbage, fileToBase64 } from "../utils/assessApi";
-import type { AssessmentResult } from "../types";
+import type { AssessResponse } from "../utils/assessApi";
 
 /**
  * モーダルの表示ステップ
@@ -23,10 +23,14 @@ export default function GarbageButtonAuth({ className }: { className?: string })
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // プレビュー表示用の Object URL（使用後は revokeObjectURL で解放する）
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // previewUrl の revoke 用 ref（コールバックの依存配列から除外するため）
+  const previewUrlRef = useRef<string | null>(null);
+  // 進行中の査定リクエストを abort するための ref
+  const abortRef = useRef<AbortController | null>(null);
   // Render API 呼び出し中フラグ（二重送信防止にも使用）
   const [isLoading, setIsLoading] = useState(false);
-  // Gemini 査定結果
-  const [result, setResult] = useState<AssessmentResult | null>(null);
+  // Gemini 査定結果（aiResult + totalPoint をまとめて管理）
+  const [assessment, setAssessment] = useState<AssessResponse | null>(null);
   // エラーメッセージ（API エラー・バリデーションエラー）
   const [error, setError] = useState<string | null>(null);
 
@@ -58,15 +62,18 @@ export default function GarbageButtonAuth({ className }: { className?: string })
    */
   const handleClose = useCallback(() => {
     stopCameraStream();
+    abortRef.current?.abort();
+    abortRef.current = null;
     setIsOpen(false);
     setStep("select");
     setSelectedFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
     setPreviewUrl(null);
-    setResult(null);
+    setAssessment(null);
     setError(null);
     setIsLoading(false);
-  }, [previewUrl, stopCameraStream]);
+  }, []);
 
   /**
    * WebRTCを利用してカメラを起動する
@@ -137,21 +144,22 @@ export default function GarbageButtonAuth({ className }: { className?: string })
       }
 
       // 前回の Object URL を解放してから新しい URL を生成する
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+      const url = URL.createObjectURL(file);
+      previewUrlRef.current = url;
       setSelectedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      setPreviewUrl(url);
       setError(null);
       setStep("preview");
     },
-    [previewUrl]
+    []
   );
 
   /**
    * 撮影した画像を Render の /api/assess エンドポイントに送信して査定を受ける
-   * 1. Geolocation API で現在地を取得（拒否された場合は location なしで送信）
-   * 2. File を Base64 に変換
-   * 3. Firebase ID トークンを付与して API へ POST
-   * 4. レスポンスを result ステートに格納して結果ステップへ
+   * 1. Geolocation API と画像エンコードを並列で実行
+   * 2. Firebase ID トークンを付与して API へ POST
+   * 3. レスポンスを assessment ステートに格納して結果ステップへ
    */
   const handleAssess = useCallback(async () => {
     if (!selectedFile) return;
@@ -159,12 +167,13 @@ export default function GarbageButtonAuth({ className }: { className?: string })
     setIsLoading(true);
     setError(null);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      // 位置情報を取得（許可されていない場合はスキップ）
-      let location: { lat: number; lng: number } | undefined;
-      if (navigator.geolocation) {
-        location = await new Promise<{ lat: number; lng: number } | undefined>(
-          (resolve) => {
+      // 位置情報取得と画像エンコードを並列実行
+      const getLocation = navigator.geolocation
+        ? new Promise<{ lat: number; lng: number } | undefined>((resolve) => {
             navigator.geolocation.getCurrentPosition(
               (pos) =>
                 resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -172,18 +181,22 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               () => resolve(undefined),
               { timeout: 5000 }
             );
-          }
-        );
-      }
+          })
+        : Promise.resolve(undefined);
 
-      const { imageBase64, mimeType } = await fileToBase64(selectedFile);
-      const assessment = await assessGarbage({ imageBase64, mimeType, location });
+      const [location, encoded] = await Promise.all([
+        getLocation,
+        fileToBase64(selectedFile),
+      ]);
 
-      setResult(assessment);
+      const response = await assessGarbage({ ...encoded, location }, controller.signal);
+      setAssessment(response);
       setStep("result");
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "査定に失敗しました");
     } finally {
+      abortRef.current = null;
       setIsLoading(false);
     }
   }, [selectedFile]);
@@ -194,14 +207,17 @@ export default function GarbageButtonAuth({ className }: { className?: string })
    */
   const handleRetry = useCallback(() => {
     stopCameraStream();
+    abortRef.current?.abort();
+    abortRef.current = null;
     setStep("select");
     setSelectedFile(null);
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
     setPreviewUrl(null);
-    setResult(null);
+    setAssessment(null);
     setError(null);
     if (uploadInputRef.current) uploadInputRef.current.value = "";
-  }, [previewUrl, stopCameraStream]);
+  }, [stopCameraStream]);
 
   // フォーカス管理: 初期フォーカス・Tabトラップ・Escapeで閉じる
   // handleClose を直接渡すことで毎レンダリングの effect 再実行（stale closure）を防ぐ
@@ -385,7 +401,7 @@ export default function GarbageButtonAuth({ className }: { className?: string })
           )}
 
           {/* ── ステップ 3: 査定結果 ── */}
-          {step === "result" && result && (
+          {step === "result" && assessment && (
             <div style={{
               display: "flex",
               flexDirection: "column",
@@ -395,22 +411,23 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               border: "1px solid var(--cy-magenta, #ff00ea)",
               marginBottom: "15px"
             }}>
-              <h3 id="garbage-modal-title" style={{ margin: 0, color: result.is_trash ? "#00f3ff" : "#ff00ea", textAlign: "center" }}>
-                {result.is_trash ? "査定結果" : "ゴミではありません"}
+              <h3 id="garbage-modal-title" style={{ margin: 0, color: assessment.aiResult.is_trash ? "#00f3ff" : "#ff00ea", textAlign: "center" }}>
+                {assessment.aiResult.is_trash ? "査定結果" : "ゴミではありません"}
               </h3>
-              {result.is_trash ? (
+              {assessment.aiResult.is_trash ? (
                 <>
                   <p>
-                    <strong>{result.type}</strong>（{result.material}）
+                    <strong>{assessment.aiResult.type}</strong>（{assessment.aiResult.material}）
                   </p>
-                  <p>獲得ポイント: <strong>{result.points} pt</strong></p>
-                  <p>{result.comment}</p>
-                  {result.is_suspicious && (
+                  <p>獲得ポイント: <strong>{assessment.aiResult.points} pt</strong></p>
+                  <p>累計ポイント: <strong>{assessment.totalPoint} pt</strong></p>
+                  <p>{assessment.aiResult.comment}</p>
+                  {assessment.aiResult.is_suspicious && (
                     <p role="alert">⚠️ 不審な画像と判定されました</p>
                   )}
                 </>
               ) : (
-                <p>{result.comment}</p>
+                <p>{assessment.aiResult.comment}</p>
               )}
               <button type="button" onClick={handleRetry}>
                 別のゴミを撮影
