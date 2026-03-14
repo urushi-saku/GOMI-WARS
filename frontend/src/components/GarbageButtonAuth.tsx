@@ -231,9 +231,35 @@ export default function GarbageButtonAuth({ className }: { className?: string })
           role="dialog"
           aria-modal="true"
           aria-labelledby="garbage-modal-title"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+            padding: "15px",
+            boxSizing: "border-box",
+            overflow: "auto"
+          }}
         >
+          <div style={{
+            background: "rgba(0, 15, 30, 0.95)",
+            border: "2px solid var(--cy-cyan, #00f3ff)",
+            borderRadius: "8px",
+            padding: "20px",
+            maxWidth: "600px",
+            width: "100%",
+            maxHeight: "90vh",
+            overflow: "auto",
+            boxShadow: "0 0 30px rgba(0, 243, 255, 0.5)"
+          }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <h2 id="garbage-modal-title" style={{ margin: 0, fontSize: "1rem", color: "#fff", letterSpacing: "2px" }}>
+            <h2 id="garbage-modal-title" style={{ margin: 0, fontSize: "1rem", color: "#fff", letterSpacing: "2px", flex: 1 }}>
               {step === "select" && "投稿方法を選択"}
               {step === "camera_view" && "🎯 フレームに合わせて撮影"}
               {step === "preview" && "プレビュー確認"}
@@ -243,7 +269,7 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               type="button"
               aria-label="モーダルを閉じる"
               onClick={handleClose}
-              style={{ background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer" }}
+              style={{ background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer", padding: "0", marginLeft: "10px" }}
             >
               ×
             </button>
@@ -313,17 +339,17 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               display: "flex",
               flexDirection: "column",
               gap: "10px",
-              padding: "15px",
+              padding: "0",
               background: "rgba(0, 15, 30, 0.9)",
               border: "1px solid var(--cy-cyan, #00f3ff)",
               marginBottom: "15px"
             }}>
-              <div style={{ position: "relative", width: "100%", background: "#000" }}>
+              <div style={{ position: "relative", width: "100%", background: "#000", aspectRatio: "16 / 9", maxHeight: "400px" }}>
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
-                  style={{ width: "100%", maxHeight: "50vh", objectFit: "cover", display: "block" }}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
                 <canvas ref={canvasRef} style={{ display: "none" }} />
                 
@@ -383,7 +409,7 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               <img
                 src={previewUrl}
                 alt="選択した画像のプレビュー"
-                style={{ maxWidth: "100%", maxHeight: "300px" }}
+                style={{ maxWidth: "100%", maxHeight: "400px", objectFit: "cover" }}
               />
               {error && <p role="alert">{error}</p>}
               <button type="button" onClick={handleRetry} disabled={isLoading}>
