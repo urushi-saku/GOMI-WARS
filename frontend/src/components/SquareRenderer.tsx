@@ -56,8 +56,8 @@ export default function SquareRenderer({ squaresData }: SquareRendererProps) {
         strokeColor: data.color, // 指定された色を枠線と塗りに使用
         strokeOpacity: 1,
         strokeWeight: 2,
-        fillColor: data.color,   
-        fillOpacity: 1,
+        fillColor: data.color,
+        fillOpacity: 0.4,
         zIndex,                  // 重なり順の制御
         map,
       });
