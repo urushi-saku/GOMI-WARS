@@ -208,3 +208,9 @@ a:active {
 br {
   display: none;
 }
+
+/* アバター画像（丸くする） */
+[data-avatar] {
+  border-radius: 50%;
+  object-fit: cover;
+}

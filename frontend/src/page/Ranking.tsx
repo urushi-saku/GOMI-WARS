@@ -21,7 +21,7 @@ function UserAvatar({ entry }: { entry: RankingEntry }) {
       />
     );
   }
-  return <span data-avatar-placeholder>{entry.displayName.charAt(0) || "？"}</span>;
+  return <span data-avatar-placeholder>{entry.displayName.charAt(0) || "👤"}</span>;
 }
 
 /** ランクバッジ（1〜3位はメダル絵文字、4位以降は番号） */
