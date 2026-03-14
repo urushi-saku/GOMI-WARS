@@ -125,9 +125,11 @@
   display: flex;
   gap: 0.8rem;
   margin-top: 0.5rem;
+  width: 100%;
 }
 
 .cancelButton {
+  flex: 1;
   background: transparent;
   border: 1px solid rgba(0, 243, 255, 0.4);
   color: rgba(0, 243, 255, 0.6);
