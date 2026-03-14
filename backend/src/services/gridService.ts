@@ -1,6 +1,7 @@
 import { db } from '../lib/firebase-admin'
 import type { GridData, GridResponse } from '../types'
 import { Transaction } from 'firebase-admin/firestore'
+import type { DocumentSnapshot } from 'firebase-admin/firestore'
 
 //緯度経度からgridIdとindexを計算(緯度0.1×経度0.1 の四角形)。*デモは(緯度0.01×経度0.01 の四角形)
 function getGridIndex(lat: number, lng: number) {
@@ -9,31 +10,33 @@ function getGridIndex(lat: number, lng: number) {
   return { latIndex, lngIndex, gridId: `grid_${latIndex}_${lngIndex}` }
 }
 
+export const getGridRef = (lat: number, lng: number) => {
+  const { gridId } = getGridIndex(lat, lng)
+  return db.collection('grids').doc(gridId)
+}
 
-export const updateGrid = async (
+export const updateGrid = (
   lat: number,
   lng: number,
   userId: string,
   addedPoint: number,
-  transaction: Transaction
-) : Promise<GridResponse> => {
+  transaction: Transaction,
+  gridDoc: DocumentSnapshot
+): GridResponse => {
   const { latIndex, lngIndex, gridId } = getGridIndex(lat, lng)
   const gridRef = db.collection('grids').doc(gridId)
 
+  const gridData: GridData = gridDoc.exists
+    ? (gridDoc.data() as GridData)
+    : {
+        latIndex,
+        lngIndex,
+        ownerUid: userId,
+        totalPoint: 0,
+        users: {},
+        updatedAt: new Date(),
+      }
 
-    //既存データ取得
-    const gridDoc = await transaction.get(gridRef)
-    const gridData: GridData = gridDoc.exists
-      ? (gridDoc.data() as GridData)
-      : {
-          latIndex,
-          lngIndex,
-          ownerUid: userId,
-          totalPoint: 0,
-          users: {},
-          updatedAt: new Date(),
-        }
- 
   //usersオブジェクト更新
   const users: Record<string, number> = gridData.users || {}
   users[userId] = (users[userId] || 0) + addedPoint
@@ -43,7 +46,7 @@ export const updateGrid = async (
 
   // ownerUid をポイント最大のユーザーに更新
   let ownerUid = gridData.ownerUid || userId
-  let maxPoint = users[ownerUid] ||0
+  let maxPoint = users[ownerUid] || 0
 
   for (const [uid, point] of Object.entries(users)) {
     if (point > maxPoint) {
@@ -53,12 +56,10 @@ export const updateGrid = async (
   }
 
   // Firestore に反映
-  const updatedGrid: GridData = {latIndex,lngIndex,ownerUid,totalPoint,users,updatedAt: new Date(),}
-
-  
+  const updatedGrid: GridData = { latIndex, lngIndex, ownerUid, totalPoint, users, updatedAt: new Date() }
   transaction.set(gridRef, updatedGrid, { merge: true })
 
   // フロントに返す形式に整形
-  const response: GridResponse = {gridId,ownerUid,totalPoint,users,}
+  const response: GridResponse = { gridId, ownerUid, totalPoint, users }
   return response
 }
