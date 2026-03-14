@@ -24,6 +24,7 @@ service cloud.firestore {
     }
 
     // グリッド（地図の色塗り）: 全員読み取り可、書き込みはバックエンドのAdmin SDKのみ
+    // v2
     match /grids/{gridId} {
       allow read: if true;
       allow write: if false;
