@@ -99,7 +99,17 @@ export async function assessImage(
     },
   })
 
-  const assessment = JSON.parse(response.text ?? '{}') as AssessmentResult
+  const text = response.text
+  if (!text) {
+    throw new Error('Gemini からの応答テキストが空です')
+  }
+
+  let assessment: AssessmentResult
+  try {
+    assessment = JSON.parse(text) as AssessmentResult
+  } catch {
+    throw new Error(`Gemini の応答を JSON としてパースできませんでした: ${text}`)
+  }
 
   // サーバー側でもポイントを強制的に 0 にする
   if (assessment.is_suspicious) {

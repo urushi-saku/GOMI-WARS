@@ -43,10 +43,9 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
       }
 
       // === ALL WRITES ===
-      // is_trash: true かつ is_suspicious: false のときだけポイント加算・Firestore に保存
-      const points = assessment.is_trash && !assessment.is_suspicious ? assessment.points : 0
+      const shouldRecord = assessment.is_trash && !assessment.is_suspicious
 
-      if (assessment.is_trash && !assessment.is_suspicious) {
+      if (shouldRecord) {
         const pickupData: Record<string, unknown> = {
           userId: req.uid,
           points: assessment.points,
@@ -61,15 +60,15 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
         transaction.set(pickupRef, pickupData)
       }
 
-      //Firestore にユーザーの累積ポイント加算（points > 0 のときのみ書き込み）
-      const updatedUser = points > 0
-        ? addPointForUser(req.uid!, points, transaction, userDoc)
+      //Firestore にユーザーの累積ポイント加算（ゴミ且つ正常のときのみ書き込み）
+      const updatedUser = shouldRecord
+        ? addPointForUser(req.uid!, assessment.points, transaction, userDoc)
         : { totalPoint: (userDoc.data()?.totalPoint ?? 0) as number }
 
       // グリッド更新。位置ごとのポイント集計とランキングを管理
       let gridUpdate = null
-      if (hasLocation && gridRef && gridDoc && points > 0) {
-        gridUpdate = updateGrid(location!.lat, location!.lng, req.uid!, points, transaction, gridDoc)
+      if (shouldRecord && hasLocation && gridRef && gridDoc) {
+        gridUpdate = updateGrid(location!.lat, location!.lng, req.uid!, assessment.points, transaction, gridDoc)
       }
 
       return {
