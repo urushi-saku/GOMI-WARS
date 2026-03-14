@@ -109,6 +109,21 @@
   box-shadow: 0 0 10px var(--cy-magenta, #ff00ea);
 }
 
+.title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 5px #fff,
+    0 0 10px var(--cy-cyan, #00f3ff),
+    0 0 20px var(--cy-cyan, #00f3ff);
+  letter-spacing: 2px;
+  text-align: center;
+}
+
 .inputField {
   width: 100%;
   box-sizing: border-box;

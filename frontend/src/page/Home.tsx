@@ -54,7 +54,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                <GarbageButtonAuth />
+                <GarbageButtonAuth className={styles.actionButton} />
                 <Link to="/ranking" className={styles.actionButton}>
                   [ ランキング ]
                 </Link>
@@ -69,7 +69,7 @@ export default function Home() {
         </div>
 
         {/* 右側（スマホでは下）：マップエリア */}
-        <div className={styles.mapSection}>
+        <div id="map" className={styles.mapSection}>
           <div className={styles.mapOverlay}>
             <span className={styles.mapLabel}>TERRITORY SCANNER</span>
             <span className={styles.mapCoords}>LAT:35.68 LNG:139.76</span>
