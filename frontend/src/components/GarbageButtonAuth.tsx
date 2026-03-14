@@ -263,17 +263,17 @@ export default function GarbageButtonAuth({ className }: { className?: string })
             boxShadow: "0 0 30px rgba(0, 243, 255, 0.5)"
           }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <h2 id="garbage-modal-title" style={{ margin: 0, fontSize: "1rem", color: "#fff", letterSpacing: "2px", flex: 1 }}>
+            <p id="garbage-modal-title" style={{ margin: 0, fontSize: "1rem", color: "#fff", letterSpacing: "2px", flex: 1 }}>
               {step === "select" && "投稿方法を選択"}
               {step === "camera_view" && "🎯 フレームに合わせて撮影"}
               {step === "preview" && "プレビュー確認"}
               {step === "result" && (assessment?.aiResult.is_trash ? "査定結果" : "ゴミではありません")}
-            </h2>
+            </p>
             <button
               type="button"
               aria-label="モーダルを閉じる"
               onClick={handleClose}
-              style={{ background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer", padding: "0", marginLeft: "10px" }}
+              style={{ background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer", padding: "0", marginLeft: "10px", width: "auto", flexShrink: 0 }}
             >
               ×
             </button>
