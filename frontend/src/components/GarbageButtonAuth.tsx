@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useDialogFocusTrap } from "../hooks/useDialogFocusTrap";
 import { assessGarbage, fileToBase64 } from "../utils/assessApi";
 import type { AssessResponse } from "../utils/assessApi";
@@ -86,15 +86,19 @@ export default function GarbageButtonAuth({ className }: { className?: string })
         audio: false,
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setStep("camera_view");
+      setStep("camera_view"); // video要素のレンダリングを先にトリガーする
     } catch (err) {
       console.error("Camera error:", err);
       setError("カメラの起動に失敗しました。権限が許可されているか確認してください。");
     }
   }, []);
+
+  // step が camera_view に変わり video 要素がマウントされた後に srcObject を設定する
+  useEffect(() => {
+    if (step === "camera_view" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [step]);
 
   /**
    * video要素の現在のフレームをキャプチャしてFileオブジェクト化する
