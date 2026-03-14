@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { AssessmentResult } from '../types'
 
 const SYSTEM_INSTRUCTION = `【Role / 役割】
@@ -61,30 +61,38 @@ const USER_PROMPT = 'この画像を査定せよ。'
 if (!process.env.GEMINI_API_KEY) {
   throw new Error('GEMINI_API_KEY が設定されていません')
 }
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-const model = genAI.getGenerativeModel({
-  model: 'gemini-3-flash-preview',
-  systemInstruction: SYSTEM_INSTRUCTION,
-  generationConfig: {
-    responseMimeType: 'application/json',
-  },
-})
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
 export async function assessImage(
   imageBase64: string,
   mimeType: string
 ): Promise<AssessmentResult> {
-  const result = await model.generateContent([
-    {
-      inlineData: {
-        data: imageBase64,
-        mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-flash-preview',
+    contents: [
+      {
+        parts: [
+          {
+            inlineData: {
+              data: imageBase64,
+              mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
+            },
+          },
+          { text: USER_PROMPT },
+        ],
+      },
+    ],
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+      responseMimeType: 'application/json',
+      temperature: 0.2,
+      thinkingConfig: {
+        thinkingBudget: 1024,
       },
     },
-    { text: USER_PROMPT },
-  ])
+  })
 
-  const assessment = JSON.parse(result.response.text()) as AssessmentResult
+  const assessment = JSON.parse(response.text ?? '{}') as AssessmentResult
 
   // サーバー側でもポイントを強制的に 0 にする
   if (assessment.is_suspicious) {

@@ -13,11 +13,11 @@
     "node": "20"
   },
   "dependencies": {
+    "@google/genai": "^1.45.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",
-    "firebase-admin": "^13.0.0",
-    "@google/generative-ai": "^0.21.0"
+    "firebase-admin": "^13.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
