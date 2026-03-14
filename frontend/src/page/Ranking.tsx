@@ -39,7 +39,7 @@ function RankRow({ entry, isMe }: { entry: RankingEntry; isMe: boolean }) {
       <RankBadge rank={entry.rank} />
       <UserAvatar entry={entry} />
       <span data-name>{entry.displayName}</span>
-      <span data-point>{entry.totalPoint.toLocaleString()} エントロピー削減量</span>
+      <span data-point>エントロピー削減量: {entry.totalPoint.toLocaleString()}</span>
     </li>
   );
 }
@@ -112,7 +112,7 @@ export default function Ranking() {
           <RankBadge rank={myEntry.rank} />
           <UserAvatar entry={myEntry} />
           <span data-name>{myEntry.displayName}</span>
-          <span data-point>{myEntry.totalPoint.toLocaleString()} エントロピー削減量</span>
+          <span data-point>エントロピー削減量: {myEntry.totalPoint.toLocaleString()}</span>
           <span data-my-label>← YOU</span>
         </div>
       )}
