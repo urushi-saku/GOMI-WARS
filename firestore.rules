@@ -22,5 +22,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false; // Cloud Functions からのみ更新
     }
+
+    // グリッド（地図の色塗り）: 全員読み取り可、書き込みはバックエンドのAdmin SDKのみ
+    match /grids/{gridId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }
