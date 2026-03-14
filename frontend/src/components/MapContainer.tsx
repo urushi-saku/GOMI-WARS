@@ -92,19 +92,28 @@ export default function MapContainer() {
 
   // Firestore の grids コレクションをリアルタイム購読
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "grids"), (snapshot) => {
-      const squares: SquareData[] = snapshot.docs.map((doc) => {
-        const data = doc.data() as GridDoc;
-        return {
-          id: doc.id,
-          lat: (data.latIndex + 0.5) / 10,
-          lng: (data.lngIndex + 0.5) / 10,
-          size: GRID_SIZE_METERS,
-          color: uidToColor(data.ownerUid),
-        };
-      });
-      setSquaresData(squares);
-    });
+    const unsub = onSnapshot(
+      collection(db, "grids"),
+      (snapshot) => {
+        console.log("[MapContainer] grids snapshot 件数:", snapshot.size);
+        const squares: SquareData[] = snapshot.docs.map((doc) => {
+          const data = doc.data() as GridDoc;
+          const sq = {
+            id: doc.id,
+            lat: (data.latIndex + 0.5) / 10,
+            lng: (data.lngIndex + 0.5) / 10,
+            size: GRID_SIZE_METERS,
+            color: uidToColor(data.ownerUid),
+          };
+          console.log("[MapContainer] grid:", sq);
+          return sq;
+        });
+        setSquaresData(squares);
+      },
+      (error) => {
+        console.error("[MapContainer] grids onSnapshot error:", error.code, error.message);
+      }
+    );
     return () => unsub();
   }, []);
 

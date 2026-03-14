@@ -27,6 +27,8 @@ export default function SquareRenderer({ squaresData }: SquareRendererProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newRectangles: any[] = [];
 
+    console.log("[SquareRenderer] 描画開始 件数:", squaresData.length);
+
     squaresData.forEach((data, index) => {
       // 1度あたりの距離の概算（メートル）
       const METERS_PER_DEGREE_LAT = 111111;
