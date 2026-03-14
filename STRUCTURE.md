@@ -45,14 +45,36 @@ frontend/
 │   │   └── firebase.ts   # Firebase 初期化・各サービスのエクスポート・API_BASE_URL 定義
 │   ├── types/
 │   │   └── index.ts      # 型定義（UserProfile / Pickup / AssessmentResult など）
+│   ├── contexts/
+│   │   └── AuthContext.tsx    # ユーザー認証状態の管理（Context API）
+│   ├── hooks/
+│   │   └── useDialogFocusTrap.ts    # ダイアログのフォーカス管理 Hook
+│   ├── components/
+│   │   ├── GarbageButton.tsx        # ゴミ査定ボタン（未認証時）
+│   │   ├── GarbageButtonAuth.tsx    # ゴミ査定ボタン（認証済み時）
+│   │   ├── HamburgerIcon.tsx        # ナビゲーションメニュー
+│   │   ├── MapContainer.tsx         # Google Maps 表示・領土塗り分けコンポーネント
+│   │   ├── MapStyles.ts             # Google Maps のカスタムスタイル定義
+│   │   ├── ProfileIcon.tsx          # プロフィールアイコン
+│   │   ├── PrivateRoute.tsx         # 認証が必要なページの保護
+│   │   └── SquareRenderer.tsx       # グリッド・スクエア表示コンポーネント
 │   ├── page/
-│   │   ├── Home.tsx      # ホーム画面（ゴミ査定画面）
-│   │   ├── Login.tsx     # ログイン画面
-│   │   └── Signup.tsx    # ユーザー登録画面
+│   │   ├── Home.tsx             # ホーム画面（ゴミ査定・地図表示）
+│   │   ├── Login.tsx            # ログイン画面
+│   │   ├── Signup.tsx           # ユーザー登録画面
+│   │   ├── Profile.tsx          # ユーザープロフィール
+│   │   ├── Ranking.tsx          # ランキング画面
+│   │   └── InitialProfile.tsx   # 初回ユーザー設定
+│   ├── data/
+│   │   └── squares.json         # グリッド情報（座標・チームデータ）
+│   ├── utils/
+│   │   ├── assessApi.ts         # ゴミ査定 API 呼び出し
+│   │   ├── authUtils.ts         # 認証ユーティリティ
+│   │   └── rankingApi.ts        # ランキング取得 API 呼び出し
 │   └── assets/
-│       └── react.svg     # React ロゴ（デフォルト）
+│       └── （画像・アイコン類）
 ├── public/
-│   └── vite.svg          # Vite ロゴ（デフォルト）
+│   └── （公開する静的ファイル）
 ├── index.html            # SPA のエントリーHTML
 ├── vite.config.ts        # Vite のビルド設定
 ├── tsconfig.json         # TypeScript 設定（ルート）
@@ -67,9 +89,12 @@ frontend/
 
 | ページ | パス | 機能 |
 |---|---|---|
-| `Home.tsx` | `/` | ゴミ査定・ポイント獲得 |
+| `Home.tsx` | `/` | ゴミ査定・ポイント獲得・地図表示 |
 | `Login.tsx` | `/login` | Firebase Email/Password ログイン |
 | `Signup.tsx` | `/signup` | Firebase Email/Password ユーザー登録 |
+| `Profile.tsx` | `/profile` | ユーザープロフィール・獲得ポイント表示 |
+| `Ranking.tsx` | `/ranking` | チーム・ユーザーのランキング表示 |
+| `InitialProfile.tsx` | `/initial-profile` | 初回ログイン時のプロフィール設定 |
 
 ### 重要ファイルの詳細
 
@@ -110,36 +135,47 @@ backend/
 │   ├── middleware/
 │   │   └── verifyToken.ts        # JWT トークン検証ミドルウェア
 │   ├── types/
-│   │   └── index.ts              # TypeScript 型定義（AssessmentResult）
+│   │   └── index.ts              # TypeScript 型定義（AssessmentResult 等）
 │   ├── services/
-│   │   └── geminiService.ts      # Gemini AI との通信ロジック（プロンプト含む）
+│   │   ├── geminiService.ts      # Gemini AI との通信ロジック（画像解析・プロンプト）
+│   │   ├── gridService.ts        # グリッド・スクエア管理ロジック
+│   │   ├── pointService.ts       # ポイント計算・管理ロジック
+│   │   └── rankingService.ts     # ランキング計算・取得ロジック
 │   ├── controllers/
-│   │   ├── assessController.ts   # リクエスト処理・Firestore保存ロジック
-│   │   └── authController.ts     # ユーザー認証関連ロジック
-│   └── routes/
-│       └── assess.ts             # ルーティング定義（URL → Controller の対応）
+│   │   ├── assessController.ts   # ゴミ査定リクエスト処理・Firestore 保存ロジック
+│   │   └── rankingController.ts  # ランキング取得リクエスト処理
+│   ├── routes/
+│   │   ├── assess.ts             # ゴミ査定ルート（POST /api/assess）
+│   │   └── ranking.ts            # ランキングルート（GET /api/ranking）
 ├── tsconfig.json                 # TypeScript 設定
 ├── package.json                  # 依存パッケージ管理（Express・Gemini API・Firebase Admin等）
-└── .env.local                    # 環境変数（GEMINI_API_KEY など）
+├── serviceAccountKey.json        # Firebase Admin SDK 認証キー（Git 管理外）
+└── .env.local                    # 環境変数（GEMINI_API_KEY 等）
 ```
 
 ### ファイル構成の責務分離
 
 | ファイル | 責務 |
 |---|---|
-| `index.ts` | サーバー起動、CORS 設定、Express ミドルウェア全体の設定 |
+| `index.ts` | サーバー起動、CORS 設定、Express ミドルウェア全体の設定、ルート管理 |
 | `lib/firebase-admin.ts` | Firebase Admin SDK の初期化（重複初期化防止）、auth/db/storageBucket のエクスポート |
-| `middleware/verifyToken.ts` | `Authorization: Bearer <idToken>` から UID を抽出・検証し、req.uid に付与 |
-| `types/index.ts` | Gemini 査定結果の型定義（AssessmentResult） |
+| `middleware/verifyToken.ts` | `Authorization: Bearer <idToken>` から UID を抽出・検証し、`req.uid` に付与 |
+| `types/index.ts` | AI 査定結果・ランキングなどの型定義 |
 | `services/geminiService.ts` | Gemini API 呼び出し、システムプロンプト管理、画像解析ロジック |
-| `controllers/assessController.ts` | リクエストボディの検証、Gemini 査定実行、Firestore への保存判定・実行 |
-| `routes/assess.ts` | POST `/api/assess` のルーティング定義（認証・コントローラー接続） |
+| `services/gridService.ts` | グリッド・スクエア データの管理・計算ロジック |
+| `services/pointService.ts` | ポイント計算・ユーザーの獲得ポイント管理 |
+| `services/rankingService.ts` | ランキング計算（チーム別・ユーザー別）、リーダーボード作成 |
+| `controllers/assessController.ts` | ゴミ査定リクエスト処理、Gemini 呼び出し、Firestore への保存判定・実行 |
+| `controllers/rankingController.ts` | ランキング取得リクエスト処理、RankingService 呼び出し |
+| `routes/assess.ts` | POST `/api/assess` のルーティング（認証・コントローラー接続） |
+| `routes/ranking.ts` | GET `/api/ranking` のルーティング（ランキング取得） |
 
 ### 重要なエンドポイント
 
 | メソッド | パス | 認証 | 役割 |
 |---|---|---|---|
 | `POST` | `/api/assess` | ✅ `verifyToken` | 画像を Gemini で査定、結果を返してゴミなら Firestore に保存 |
+| `GET` | `/api/ranking` | ✅ `verifyToken` | チーム別・ユーザー別のランキング取得 |
 | `GET` | `/health` | 不要 | Render ヘルスチェック用 |
 
 ### リクエスト・レスポンス仕様
