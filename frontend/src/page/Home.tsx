@@ -4,7 +4,6 @@ import { auth } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
 import MapContainer from "../components/MapContainer";
 import GarbageButtonAuth from "../components/GarbageButtonAuth";
-import GarbageButton from "../components/GarbageButton";
 import ProfileIcon from "../components/ProfileIcon";
 import styles from "./Home.module.css";
 
@@ -55,7 +54,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                {user ? <GarbageButtonAuth /> : <GarbageButton />}
+                <GarbageButtonAuth />
                 <Link to="/ranking" className={styles.actionButton}>
                   [ ランキング ]
                 </Link>
