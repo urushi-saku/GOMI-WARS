@@ -32,16 +32,20 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
       const gridRef = hasLocation ? getGridRef(location!.lat, location!.lng) : null
 
       // === ALL READS FIRST ===
-      const existing = await transaction.get(pickupRef)
-      const userDoc = await transaction.get(userRef)
-      const gridDoc = gridRef ? await transaction.get(gridRef) : null
+      const [existing, userDoc, gridDoc] = await Promise.all([
+        transaction.get(pickupRef),
+        transaction.get(userRef),
+        gridRef ? transaction.get(gridRef) : Promise.resolve(null),
+      ])
 
       if (existing.exists) {
         throw new Error('同じ画像は投稿できません')
       }
 
       // === ALL WRITES ===
-      // is_trash: true かつ is_suspicious: false のときだけ Firestore に保存
+      // is_trash: true かつ is_suspicious: false のときだけポイント加算・Firestore に保存
+      const points = assessment.is_trash && !assessment.is_suspicious ? assessment.points : 0
+
       if (assessment.is_trash && !assessment.is_suspicious) {
         const pickupData: Record<string, unknown> = {
           userId: req.uid,
@@ -58,12 +62,12 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
       }
 
       //Firestore にユーザーの累積ポイント加算
-      const updatedUser = addPointForUser(req.uid!, assessment.points, transaction, userDoc)
+      const updatedUser = addPointForUser(req.uid!, points, transaction, userDoc)
 
       // グリッド更新。位置ごとのポイント集計とランキングを管理
       let gridUpdate = null
       if (hasLocation && gridRef && gridDoc) {
-        gridUpdate = updateGrid(location!.lat, location!.lng, req.uid!, assessment.points, transaction, gridDoc)
+        gridUpdate = updateGrid(location!.lat, location!.lng, req.uid!, points, transaction, gridDoc)
       }
 
       return {

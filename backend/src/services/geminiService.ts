@@ -56,24 +56,24 @@ const SYSTEM_INSTRUCTION = `【Role / 役割】
 
 必ずJSONのみを出力せよ。`
 
+const USER_PROMPT = 'この画像を査定せよ。'
+
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY が設定されていません')
+}
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const model = genAI.getGenerativeModel({
+  model: 'gemini-3-flash-preview',
+  systemInstruction: SYSTEM_INSTRUCTION,
+  generationConfig: {
+    responseMimeType: 'application/json',
+  },
+})
+
 export async function assessImage(
   imageBase64: string,
   mimeType: string
 ): Promise<AssessmentResult> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY が設定されていません')
-  }
-
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-3-flash-preview',
-    systemInstruction: SYSTEM_INSTRUCTION,
-    generationConfig: {
-      responseMimeType: 'application/json',
-    },
-  })
-
   const result = await model.generateContent([
     {
       inlineData: {
@@ -81,6 +81,7 @@ export async function assessImage(
         mimeType: mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
       },
     },
+    { text: USER_PROMPT },
   ])
 
   const assessment = JSON.parse(result.response.text()) as AssessmentResult
