@@ -7,7 +7,7 @@ function isSafeUrl(url: string): boolean {
   return url.startsWith("https://");
 }
 
-/** ユーザーアイコン（photoURL があれば画像、なければ頭文字プレースホルダー） */
+/** ユーザーアイコン（photoURL があれば画像、なければデフォルトSVG） */
 function UserAvatar({ entry }: { entry: RankingEntry }) {
   if (entry.photoURL && isSafeUrl(entry.photoURL)) {
     return (
@@ -21,7 +21,15 @@ function UserAvatar({ entry }: { entry: RankingEntry }) {
       />
     );
   }
-  return <span data-avatar-placeholder>{entry.displayName.charAt(0) || "👤"}</span>;
+  return (
+    <img
+      src="/default-avatar.svg"
+      alt={entry.displayName || "デフォルトアイコン"}
+      width={32}
+      height={32}
+      data-avatar
+    />
+  );
 }
 
 /** ランクバッジ（1〜3位はメダル絵文字、4位以降は番号） */
