@@ -1,37 +1,44 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { googleLogin, loginWithEmail } from "../utils/authUtils";
+import { Link, useLocation } from "react-router-dom";
+import {
+  googleLogin,
+  loginWithEmail,
+  getAuthErrorMessage,
+} from "../utils/authUtils";
 import styles from "./Login.module.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(
+    (useLocation().state as { error?: string } | null)?.error ?? null,
+  );
 
   const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ボタンが押されてもリロードしない
+    e.preventDefault();
+    setError(null);
     try {
       await loginWithEmail(email, password);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(error.message);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 
   const handleGoogleLogin = async () => {
+    setError(null);
     try {
       await googleLogin();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(`Error: ${error.message}`);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 
   return (
     <div className={styles.pageContainer}>
       <header className={styles.header}>
-        <h1 className={styles.title} data-text="LOGIN">LOGIN</h1>
+        <h1 className={styles.title} data-text="LOGIN">
+          LOGIN
+        </h1>
         <p className={styles.subtitle}>// AUTHENTICATION REQUIRED //</p>
       </header>
 
@@ -59,13 +66,23 @@ export default function Login() {
           />
         </div>
 
-        <button type="submit" className={styles.actionButton}>[ ログイン実行 ]</button>
-        <button type="button" onClick={handleGoogleLogin} className={styles.googleButton}>
+        <button type="submit" className={styles.actionButton}>
+          [ ログイン実行 ]
+        </button>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className={styles.googleButton}
+        >
           [ Googleでログイン ]
         </button>
       </form>
 
-      <Link to="/" className={styles.backLink}>&lt; トップシステムへ戻る</Link>
+      {error && <p className={styles.errorMessage}>{error}</p>}
+
+      <Link to="/" className={styles.backLink}>
+        &lt; トップシステムへ戻る
+      </Link>
     </div>
   );
 }

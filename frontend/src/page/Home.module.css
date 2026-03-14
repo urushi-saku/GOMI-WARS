@@ -1,4 +1,4 @@
-/* Home.module.css */
+﻿/* Home.module.css */
 
 .homeContainer {
   display: flex;
@@ -194,7 +194,7 @@
   box-shadow: 0 0 20px rgba(255, 0, 234, 0.2);
   background: var(--cy-panel, rgba(0, 10, 20, 0.9));
   flex: none;
-  /* スマホでは潰れないように固定確保 */
+  /* 繧ｹ繝槭・縺ｧ縺ｯ貎ｰ繧後↑縺・ｈ縺・↓蝗ｺ螳夂｢ｺ菫・*/
   position: relative;
   display: flex;
   flex-direction: column;
@@ -203,7 +203,7 @@
 @media (min-width: 900px) {
   .mapSection {
     flex: 1;
-    /* PCでは残りの幅を全て使う */
+    /* PC縺ｧ縺ｯ谿九ｊ縺ｮ蟷・ｒ蜈ｨ縺ｦ菴ｿ縺・*/
     height: auto;
     align-self: stretch;
   }
@@ -219,7 +219,7 @@
   display: flex;
   justify-content: space-between;
   pointer-events: none;
-  /* マップのクリックの邪魔をしない */
+  /* 繝槭ャ繝励・繧ｯ繝ｪ繝・け縺ｮ驍ｪ鬲斐ｒ縺励↑縺・*/
   z-index: 10;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
   color: var(--cy-magenta, #ff00ea);

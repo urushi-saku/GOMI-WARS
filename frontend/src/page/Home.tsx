@@ -4,6 +4,7 @@ import { auth } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
 import MapContainer from "../components/MapContainer";
 import GarbageButtonAuth from "../components/GarbageButtonAuth";
+import GarbageButton from "../components/GarbageButton";
 import ProfileIcon from "../components/ProfileIcon";
 import styles from "./Home.module.css";
 
@@ -16,7 +17,9 @@ export default function Home() {
       await signOut(auth);
     } catch (error) {
       console.error("Failed to sign out:", error);
-      window.alert("ログアウトに失敗しました。時間をおいて再度お試しください。");
+      window.alert(
+        "ログアウトに失敗しました。時間をおいて再度お試しください。",
+      );
     }
   };
 
@@ -24,7 +27,9 @@ export default function Home() {
     <div className={styles.homeContainer}>
       {/* ネオン風のタイトルヘッダー */}
       <header className={styles.header}>
-        <h1 className={styles.title} data-text="GOMI WARS">GOMI WARS</h1>
+        <h1 className={styles.title} data-text="GOMI WARS">
+          GOMI WARS
+        </h1>
       </header>
 
       <div className={styles.dashboard}>
@@ -38,22 +43,30 @@ export default function Home() {
           <div className={styles.buttonContainer}>
             {!user ? (
               <>
-                <Link to="/signup" className={styles.actionButton}>[ ユーザ登録 ]</Link>
-                <Link to="/login" className={styles.actionButton}>[ ログイン ]</Link>
-                <Link to="/ranking" className={styles.actionButton}>[ ランキング ]</Link>
+                <Link to="/signup" className={styles.actionButton}>
+                  [ ユーザ登録 ]
+                </Link>
+                <Link to="/login" className={styles.actionButton}>
+                  [ ログイン ]
+                </Link>
+                <Link to="/ranking" className={styles.actionButton}>
+                  [ ランキング ]
+                </Link>
               </>
             ) : (
               <>
-                <GarbageButtonAuth />
-                <Link to="/ranking" className={styles.actionButton}>[ ランキング ]</Link>
-                <button onClick={handleSignOut} className={styles.actionButton}>[ ログアウト ]</button>
+                {user ? <GarbageButtonAuth /> : <GarbageButton />}
+                <Link to="/ranking" className={styles.actionButton}>
+                  [ ランキング ]
+                </Link>
+                <button onClick={handleSignOut} className={styles.actionButton}>
+                  [ ログアウト ]
+                </button>
               </>
             )}
           </div>
 
-          <div className={styles.panelFooter}>
-            CONNECTION: SECURE
-          </div>
+          <div className={styles.panelFooter}>CONNECTION: SECURE</div>
         </div>
 
         {/* 右側（スマホでは下）：マップエリア */}

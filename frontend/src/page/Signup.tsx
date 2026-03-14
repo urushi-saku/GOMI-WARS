@@ -1,38 +1,42 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { googleLogin, signupWithEmail } from "../utils/authUtils";
+import {
+  googleLogin,
+  signupWithEmail,
+  getAuthErrorMessage,
+} from "../utils/authUtils";
 import styles from "./Signup.module.css";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignup = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ボタンが押されてもリロードしない
-
+    e.preventDefault();
+    setError(null);
     try {
       await signupWithEmail(email, password);
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(`Error: ${error.message}`);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 
   const handleGoogleSignup = async () => {
+    setError(null);
     try {
       await googleLogin();
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error(`Error: ${error.message}`);
-      }
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
     }
   };
 
   return (
     <div className={styles.pageContainer}>
       <header className={styles.header}>
-        <h1 className={styles.title} data-text="REGISTER">REGISTER</h1>
+        <h1 className={styles.title} data-text="REGISTER">
+          REGISTER
+        </h1>
         <p className={styles.subtitle}>// NEW AGENT INITIALIZATION //</p>
       </header>
 
@@ -60,13 +64,23 @@ export default function Signup() {
           />
         </div>
 
-        <button type="submit" className={styles.actionButton}>[ 登録する ]</button>
-        <button type="button" onClick={handleGoogleSignup} className={styles.googleButton}>
+        <button type="submit" className={styles.actionButton}>
+          [ 登録する ]
+        </button>
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          className={styles.googleButton}
+        >
           [ Googleで登録 ]
         </button>
       </form>
 
-      <Link to="/" className={styles.backLink}>&lt; トップシステムへ戻る</Link>
+      {error && <p className={styles.errorMessage}>{error}</p>}
+
+      <Link to="/" className={styles.backLink}>
+        &lt; トップシステムへ戻る
+      </Link>
     </div>
   );
 }
