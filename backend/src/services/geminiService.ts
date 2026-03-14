@@ -67,7 +67,7 @@ export async function assessImage(
 
   const genAI = new GoogleGenerativeAI(apiKey)
   const model = genAI.getGenerativeModel({
-    model: 'gemma-3.0-flash-preview',
+    model: 'gemini-3-flash-preview',
     systemInstruction: SYSTEM_INSTRUCTION,
     generationConfig: {
       responseMimeType: 'application/json',
