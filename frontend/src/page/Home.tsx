@@ -44,7 +44,7 @@ export default function Home() {
               </>
             ) : (
               <>
-                {user ? <GarbageButtonAuth /> : <GarbageButton />}
+                <GarbageButtonAuth />
                 <Link to="/ranking" className={styles.actionButton}>[ ランキング ]</Link>
                 <button onClick={handleSignOut} className={styles.actionButton}>[ ログアウト ]</button>
               </>
