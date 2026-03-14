@@ -460,6 +460,7 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               </button>
             </div>
           )}
+          </div>
         </div>
       )}
 
