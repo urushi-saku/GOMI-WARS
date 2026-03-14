@@ -183,7 +183,7 @@ export default function GarbageButtonAuth({ className }: { className?: string })
                 resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
               // 拒否・タイムアウトは undefined で resolve してスキップ
               () => resolve(undefined),
-              { timeout: 5000 }
+              { timeout: 15000, maximumAge: 60000 }
             );
           })
         : Promise.resolve(undefined);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { Map, type MapCameraChangedEvent } from "@vis.gl/react-google-maps";
+import { Map, useMap, type MapCameraChangedEvent } from "@vis.gl/react-google-maps";
 import { cyberpunkMapStyles, zoomedInCyberpunkMapStyles } from "./MapStyles";
 import SquareRenderer from "./SquareRenderer";
 
@@ -33,6 +33,56 @@ function uidToColor(uid: string): string {
 // グリッドインデックスから中心座標を計算
 // latIndex = floor(lat * 10) なので中心は (latIndex + 0.5) / 10
 const GRID_SIZE_METERS = 11111; // 0.1度 ≈ 11111m
+
+// 現在地ボタン（Map の子として useMap() でインスタンスにアクセス）
+function LocationButton() {
+  const map = useMap();
+  const [locating, setLocating] = useState(false);
+
+  const handleClick = () => {
+    if (!map || !navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        map.setZoom(15);
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={locating}
+      style={{
+        position: "absolute",
+        bottom: "20px",
+        right: "10px",
+        zIndex: 10,
+        width: "44px",
+        height: "44px",
+        padding: 0,
+        background: "rgba(0, 10, 20, 0.85)",
+        border: "1px solid var(--cy-cyan, #00f3ff)",
+        color: locating ? "rgba(0,243,255,0.4)" : "var(--cy-cyan, #00f3ff)",
+        fontSize: "1.3rem",
+        cursor: locating ? "default" : "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 0 10px rgba(0,243,255,0.3)",
+        transition: "all 0.2s",
+      }}
+      aria-label="現在地に移動"
+    >
+      ⊕
+    </button>
+  );
+}
 
 export default function MapContainer() {
   const [zoomLevel, setZoomLevel] = useState(10);
@@ -73,8 +123,8 @@ export default function MapContainer() {
         }}
       >
         <SquareRenderer squaresData={squaresData} />
+        <LocationButton />
       </Map>
     </div>
   );
 }
-
