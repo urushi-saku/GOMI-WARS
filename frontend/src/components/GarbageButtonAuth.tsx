@@ -25,6 +25,8 @@ export default function GarbageButtonAuth({ className }: { className?: string })
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   // previewUrl の revoke 用 ref（コールバックの依存配列から除外するため）
   const previewUrlRef = useRef<string | null>(null);
+  // 進行中の査定リクエストを abort するための ref
+  const abortRef = useRef<AbortController | null>(null);
   // Render API 呼び出し中フラグ（二重送信防止にも使用）
   const [isLoading, setIsLoading] = useState(false);
   // Gemini 査定結果（aiResult + totalPoint をまとめて管理）
@@ -60,6 +62,8 @@ export default function GarbageButtonAuth({ className }: { className?: string })
    */
   const handleClose = useCallback(() => {
     stopCameraStream();
+    abortRef.current?.abort();
+    abortRef.current = null;
     setIsOpen(false);
     setStep("select");
     setSelectedFile(null);
@@ -163,6 +167,9 @@ export default function GarbageButtonAuth({ className }: { className?: string })
     setIsLoading(true);
     setError(null);
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       // 位置情報取得と画像エンコードを並列実行
       const getLocation = navigator.geolocation
@@ -182,12 +189,14 @@ export default function GarbageButtonAuth({ className }: { className?: string })
         fileToBase64(selectedFile),
       ]);
 
-      const response = await assessGarbage({ ...encoded, location });
+      const response = await assessGarbage({ ...encoded, location }, controller.signal);
       setAssessment(response);
       setStep("result");
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "査定に失敗しました");
     } finally {
+      abortRef.current = null;
       setIsLoading(false);
     }
   }, [selectedFile]);
@@ -198,6 +207,8 @@ export default function GarbageButtonAuth({ className }: { className?: string })
    */
   const handleRetry = useCallback(() => {
     stopCameraStream();
+    abortRef.current?.abort();
+    abortRef.current = null;
     setStep("select");
     setSelectedFile(null);
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);

@@ -58,16 +58,23 @@ const SYSTEM_INSTRUCTION = `【Role / 役割】
 
 const USER_PROMPT = 'この画像を査定せよ。'
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY が設定されていません')
+let ai: GoogleGenAI | null = null
+
+function getAI(): GoogleGenAI {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY が設定されていません')
+  }
+  if (!ai) {
+    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  }
+  return ai
 }
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
 
 export async function assessImage(
   imageBase64: string,
   mimeType: string
 ): Promise<AssessmentResult> {
-  const response = await ai.models.generateContent({
+  const response = await getAI().models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [
       {

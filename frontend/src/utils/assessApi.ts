@@ -16,7 +16,8 @@ export interface AssessResponse {
  * ゴミ画像を Render の /api/assess に送信して査定結果を取得する
  */
 export async function assessGarbage(
-  payload: AssessPayload
+  payload: AssessPayload,
+  signal?: AbortSignal
 ): Promise<AssessResponse> {
   const currentUser = auth.currentUser;
   if (!currentUser) {
@@ -32,6 +33,7 @@ export async function assessGarbage(
       Authorization: `Bearer ${idToken}`,
     },
     body: JSON.stringify(payload),
+    signal,
   });
 
   if (!res.ok) {

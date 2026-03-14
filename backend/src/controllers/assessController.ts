@@ -61,12 +61,14 @@ export const assess = async (req: Request, res: Response): Promise<void> => {
         transaction.set(pickupRef, pickupData)
       }
 
-      //Firestore にユーザーの累積ポイント加算
-      const updatedUser = addPointForUser(req.uid!, points, transaction, userDoc)
+      //Firestore にユーザーの累積ポイント加算（points > 0 のときのみ書き込み）
+      const updatedUser = points > 0
+        ? addPointForUser(req.uid!, points, transaction, userDoc)
+        : { totalPoint: (userDoc.data()?.totalPoint ?? 0) as number }
 
       // グリッド更新。位置ごとのポイント集計とランキングを管理
       let gridUpdate = null
-      if (hasLocation && gridRef && gridDoc) {
+      if (hasLocation && gridRef && gridDoc && points > 0) {
         gridUpdate = updateGrid(location!.lat, location!.lng, req.uid!, points, transaction, gridDoc)
       }
 
