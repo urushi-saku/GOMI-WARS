@@ -232,13 +232,22 @@ export default function GarbageButtonAuth({ className }: { className?: string })
           aria-modal="true"
           aria-labelledby="garbage-modal-title"
         >
-          <button
-            type="button"
-            aria-label="モーダルを閉じる"
-            onClick={handleClose}
-          >
-            ×
-          </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+            <h2 id="garbage-modal-title" style={{ margin: 0, fontSize: "1rem", color: "#fff", letterSpacing: "2px" }}>
+              {step === "select" && "投稿方法を選択"}
+              {step === "camera_view" && "🎯 フレームに合わせて撮影"}
+              {step === "preview" && "プレビュー確認"}
+              {step === "result" && (assessment?.aiResult.is_trash ? "査定結果" : "ゴミではありません")}
+            </h2>
+            <button
+              type="button"
+              aria-label="モーダルを閉じる"
+              onClick={handleClose}
+              style={{ background: "none", border: "none", color: "#fff", fontSize: "1.5rem", cursor: "pointer" }}
+            >
+              ×
+            </button>
+          </div>
 
           {/* ── ステップ 1: カメラ撮影 / 写真投稿 ── */}
           {step === "select" && (
@@ -252,10 +261,6 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               borderRadius: "4px",
               marginBottom: "15px"
             }}>
-              <h3 id="garbage-modal-title" style={{ margin: "0 0 5px", fontSize: "1rem", color: "#fff", textAlign: "center", letterSpacing: "2px" }}>
-                投稿方法を選択
-              </h3>
-              {error && <p role="alert" style={{ color: "var(--cy-magenta, #ff00ea)", fontSize: "0.9rem" }}>{error}</p>}
               
               <button
                 type="button"
@@ -313,10 +318,6 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               border: "1px solid var(--cy-cyan, #00f3ff)",
               marginBottom: "15px"
             }}>
-              <h3 id="garbage-modal-title" style={{ margin: 0, color: "#fff", textAlign: "center", letterSpacing: "2px" }}>
-                🎯 フレームに合わせて撮影
-              </h3>
-              
               <div style={{ position: "relative", width: "100%", background: "#000" }}>
                 <video
                   ref={videoRef}
@@ -379,7 +380,6 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               border: "1px solid var(--cy-cyan, #00f3ff)",
               marginBottom: "15px"
             }}>
-              <h3 id="garbage-modal-title" style={{ margin: 0, color: "#fff", textAlign: "center" }}>プレビュー確認</h3>
               <img
                 src={previewUrl}
                 alt="選択した画像のプレビュー"
@@ -411,9 +411,6 @@ export default function GarbageButtonAuth({ className }: { className?: string })
               border: "1px solid var(--cy-magenta, #ff00ea)",
               marginBottom: "15px"
             }}>
-              <h3 id="garbage-modal-title" style={{ margin: 0, color: assessment.aiResult.is_trash ? "#00f3ff" : "#ff00ea", textAlign: "center" }}>
-                {assessment.aiResult.is_trash ? "査定結果" : "ゴミではありません"}
-              </h3>
               {assessment.aiResult.is_trash ? (
                 <>
                   <p>
